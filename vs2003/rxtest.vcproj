@@ -124,223 +124,223 @@
 			Name="src"
 			Filter="">
 			<File
-				RelativePath=".\src\main.c">
+				RelativePath="..\src\main.c">
 			</File>
 			<Filter
 				Name="util"
 				Filter="">
 				<File
-					RelativePath=".\src\util\buf.c">
+					RelativePath="..\src\util\buf.c">
 				</File>
 				<File
-					RelativePath=".\src\util\buf.h">
+					RelativePath="..\src\util\buf.h">
 				</File>
 				<File
-					RelativePath=".\src\util\callback.c">
+					RelativePath="..\src\util\callback.c">
 				</File>
 				<File
-					RelativePath=".\src\util\callback.h">
+					RelativePath="..\src\util\callback.h">
 				</File>
 				<File
-					RelativePath=".\src\util\db.h">
+					RelativePath="..\src\util\db.h">
 				</File>
 				<File
-					RelativePath=".\src\util\delay.c">
+					RelativePath="..\src\util\delay.c">
 				</File>
 				<File
-					RelativePath=".\src\util\delay.h">
+					RelativePath="..\src\util\delay.h">
 				</File>
 				<File
-					RelativePath=".\src\util\iniparse.c">
+					RelativePath="..\src\util\iniparse.c">
 				</File>
 				<File
-					RelativePath=".\src\util\iniparse.h">
+					RelativePath="..\src\util\iniparse.h">
 				</File>
 				<File
-					RelativePath=".\src\util\list.h">
+					RelativePath="..\src\util\list.h">
 				</File>
 				<File
-					RelativePath=".\src\util\macro.h">
+					RelativePath="..\src\util\macro.h">
 				</File>
 				<File
-					RelativePath=".\src\util\numparse.c">
+					RelativePath="..\src\util\numparse.c">
 				</File>
 				<File
-					RelativePath=".\src\util\numparse.h">
+					RelativePath="..\src\util\numparse.h">
 				</File>
 				<File
-					RelativePath=".\src\util\pathutil.c">
+					RelativePath="..\src\util\pathutil.c">
 				</File>
 				<File
-					RelativePath=".\src\util\pathutil.h">
+					RelativePath="..\src\util\pathutil.h">
 				</File>
 				<File
-					RelativePath=".\src\util\strutil.c">
+					RelativePath="..\src\util\strutil.c">
 				</File>
 				<File
-					RelativePath=".\src\util\strutil.h">
+					RelativePath="..\src\util\strutil.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="ui"
 				Filter="">
 				<File
-					RelativePath=".\src\ui\audctrl.c">
+					RelativePath="..\src\ui\audctrl.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\audctrl.h">
+					RelativePath="..\src\ui\audctrl.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\cmcfg.c">
+					RelativePath="..\src\ui\cmcfg.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\cmcfg.h">
+					RelativePath="..\src\ui\cmcfg.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\cmwnd.c">
+					RelativePath="..\src\ui\cmwnd.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\cmwnd.h">
+					RelativePath="..\src\ui\cmwnd.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\colormap.c">
+					RelativePath="..\src\ui\colormap.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\colormap.h">
+					RelativePath="..\src\ui\colormap.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\freqcfg.c">
+					RelativePath="..\src\ui\freqcfg.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\freqcfg.h">
+					RelativePath="..\src\ui\freqcfg.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\freqwnd.c">
+					RelativePath="..\src\ui\freqwnd.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\freqwnd.h">
+					RelativePath="..\src\ui\freqwnd.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\keynav.c">
+					RelativePath="..\src\ui\keynav.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\keynav.h">
+					RelativePath="..\src\ui\keynav.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\notifmsg.h">
+					RelativePath="..\src\ui\notifmsg.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\rxwnd.c">
+					RelativePath="..\src\ui\rxwnd.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\rxwnd.h">
+					RelativePath="..\src\ui\rxwnd.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\specscal.c">
+					RelativePath="..\src\ui\specscal.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\specscal.h">
+					RelativePath="..\src\ui\specscal.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\specview.c">
+					RelativePath="..\src\ui\specview.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\specview.h">
+					RelativePath="..\src\ui\specview.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\uicommon.c">
+					RelativePath="..\src\ui\uicommon.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\uicommon.h">
+					RelativePath="..\src\ui\uicommon.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\uimain.c">
+					RelativePath="..\src\ui\uimain.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\uimain.h">
+					RelativePath="..\src\ui\uimain.h">
 				</File>
 				<File
-					RelativePath=".\src\ui\watrview.c">
+					RelativePath="..\src\ui\watrview.c">
 				</File>
 				<File
-					RelativePath=".\src\ui\watrview.h">
+					RelativePath="..\src\ui\watrview.h">
 				</File>
 				<Filter
 					Name="sets"
 					Filter="">
 					<File
-						RelativePath=".\src\ui\sets\pageaud.c">
+						RelativePath="..\src\ui\sets\pageaud.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pageaud.h">
+						RelativePath="..\src\ui\sets\pageaud.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagecrsv.c">
+						RelativePath="..\src\ui\sets\pagecrsv.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagecrsv.h">
+						RelativePath="..\src\ui\sets\pagecrsv.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagecrwv.c">
+						RelativePath="..\src\ui\sets\pagecrwv.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagecrwv.h">
+						RelativePath="..\src\ui\sets\pagecrwv.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pageproc.c">
+						RelativePath="..\src\ui\sets\pageproc.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pageproc.h">
+						RelativePath="..\src\ui\sets\pageproc.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagevis.c">
+						RelativePath="..\src\ui\sets\pagevis.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\pagevis.h">
+						RelativePath="..\src\ui\sets\pagevis.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\setwnd.c">
+						RelativePath="..\src\ui\sets\setwnd.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\sets\setwnd.h">
+						RelativePath="..\src\ui\sets\setwnd.h">
 					</File>
 				</Filter>
 				<Filter
 					Name="proccfg"
 					Filter="">
 					<File
-						RelativePath=".\src\ui\proccfg\chanopt.c">
+						RelativePath="..\src\ui\proccfg\chanopt.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\chanopt.h">
+						RelativePath="..\src\ui\proccfg\chanopt.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\filtcfg.c">
+						RelativePath="..\src\ui\proccfg\filtcfg.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\filtcfg.h">
+						RelativePath="..\src\ui\proccfg\filtcfg.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\fmcfg.c">
+						RelativePath="..\src\ui\proccfg\fmcfg.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\fmcfg.h">
+						RelativePath="..\src\ui\proccfg\fmcfg.h">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\sqlcfg.c">
+						RelativePath="..\src\ui\proccfg\sqlcfg.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\proccfg\sqlcfg.h">
+						RelativePath="..\src\ui\proccfg\sqlcfg.h">
 					</File>
 				</Filter>
 				<Filter
 					Name="ctrl"
 					Filter="">
 					<File
-						RelativePath=".\src\ui\ctrl\levelbar.c">
+						RelativePath="..\src\ui\ctrl\levelbar.c">
 					</File>
 					<File
-						RelativePath=".\src\ui\ctrl\levelbar.h">
+						RelativePath="..\src\ui\ctrl\levelbar.h">
 					</File>
 				</Filter>
 			</Filter>
@@ -348,108 +348,108 @@
 				Name="rx"
 				Filter="">
 				<File
-					RelativePath=".\src\rx\levelmtr.c">
+					RelativePath="..\src\rx\levelmtr.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\levelmtr.h">
+					RelativePath="..\src\rx\levelmtr.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rx_fm.c">
+					RelativePath="..\src\rx\rx_fm.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rx_fm.h">
+					RelativePath="..\src\rx\rx_fm.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxaudout.c">
+					RelativePath="..\src\rx\rxaudout.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxaudout.h">
+					RelativePath="..\src\rx\rxaudout.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxconfig.c">
+					RelativePath="..\src\rx\rxconfig.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxconfig.h">
+					RelativePath="..\src\rx\rxconfig.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxlimits.h">
+					RelativePath="..\src\rx\rxlimits.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxprccfg.c">
+					RelativePath="..\src\rx\rxprccfg.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxprccfg.h">
+					RelativePath="..\src\rx\rxprccfg.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxprocch.c">
+					RelativePath="..\src\rx\rxprocch.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxprocch.h">
+					RelativePath="..\src\rx\rxprocch.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxspect.c">
+					RelativePath="..\src\rx\rxspect.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxspect.h">
+					RelativePath="..\src\rx\rxspect.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxsql.c">
+					RelativePath="..\src\rx\rxsql.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxsql.h">
+					RelativePath="..\src\rx\rxsql.h">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxstate.c">
+					RelativePath="..\src\rx\rxstate.c">
 				</File>
 				<File
-					RelativePath=".\src\rx\rxstate.h">
+					RelativePath="..\src\rx\rxstate.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="audio"
 				Filter="">
 				<File
-					RelativePath=".\src\audio\cvtbuf.c">
+					RelativePath="..\src\audio\cvtbuf.c">
 				</File>
 				<File
-					RelativePath=".\src\audio\cvtbuf.h">
+					RelativePath="..\src\audio\cvtbuf.h">
 				</File>
 				<File
-					RelativePath=".\src\audio\rangelim.c">
+					RelativePath="..\src\audio\rangelim.c">
 				</File>
 				<File
-					RelativePath=".\src\audio\rangelim.h">
+					RelativePath="..\src\audio\rangelim.h">
 				</File>
 				<File
-					RelativePath=".\src\audio\sndmix.c">
+					RelativePath="..\src\audio\sndmix.c">
 				</File>
 				<File
-					RelativePath=".\src\audio\sndmix.h">
+					RelativePath="..\src\audio\sndmix.h">
 				</File>
 				<File
-					RelativePath=".\src\audio\sndout.c">
+					RelativePath="..\src\audio\sndout.c">
 				</File>
 				<File
-					RelativePath=".\src\audio\sndout.h">
+					RelativePath="..\src\audio\sndout.h">
 				</File>
 				<File
-					RelativePath=".\src\audio\wavio.c">
+					RelativePath="..\src\audio\wavio.c">
 				</File>
 				<File
-					RelativePath=".\src\audio\wavio.h">
+					RelativePath="..\src\audio\wavio.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="dsp"
 				Filter="">
 				<File
-					RelativePath=".\src\dsp\complex.c">
+					RelativePath="..\src\dsp\complex.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\complex.h">
+					RelativePath="..\src\dsp\complex.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\complex0.asm">
+					RelativePath="..\src\dsp\complex0.asm">
 					<FileConfiguration
 						Name="Debug|Win32">
 						<Tool
@@ -470,22 +470,22 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\dsp\decim.c">
+					RelativePath="..\src\dsp\decim.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\decim.h">
+					RelativePath="..\src\dsp\decim.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\dsp.h">
+					RelativePath="..\src\dsp\dsp.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\fft.c">
+					RelativePath="..\src\dsp\fft.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\fft.h">
+					RelativePath="..\src\dsp\fft.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\fft0.asm">
+					RelativePath="..\src\dsp\fft0.asm">
 					<FileConfiguration
 						Name="Debug|Win32">
 						<Tool
@@ -506,25 +506,25 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\dsp\firdes.c">
+					RelativePath="..\src\dsp\firdes.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firdes.h">
+					RelativePath="..\src\dsp\firdes.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firfft.c">
+					RelativePath="..\src\dsp\firfft.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firfft.h">
+					RelativePath="..\src\dsp\firfft.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firfilt.c">
+					RelativePath="..\src\dsp\firfilt.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firfilt.h">
+					RelativePath="..\src\dsp\firfilt.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\firfilt0.asm">
+					RelativePath="..\src\dsp\firfilt0.asm">
 					<FileConfiguration
 						Name="Debug|Win32">
 						<Tool
@@ -545,25 +545,25 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\dsp\goertz.c">
+					RelativePath="..\src\dsp\goertz.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\goertz.h">
+					RelativePath="..\src\dsp\goertz.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\iirfilt.c">
+					RelativePath="..\src\dsp\iirfilt.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\iirfilt.h">
+					RelativePath="..\src\dsp\iirfilt.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\osc.c">
+					RelativePath="..\src\dsp\osc.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\osc.h">
+					RelativePath="..\src\dsp\osc.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\osc0.asm">
+					RelativePath="..\src\dsp\osc0.asm">
 					<FileConfiguration
 						Name="Debug|Win32">
 						<Tool
@@ -584,47 +584,47 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\src\dsp\resamp.c">
+					RelativePath="..\src\dsp\resamp.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\resamp.h">
+					RelativePath="..\src\dsp\resamp.h">
 				</File>
 				<File
-					RelativePath=".\src\dsp\window.c">
+					RelativePath="..\src\dsp\window.c">
 				</File>
 				<File
-					RelativePath=".\src\dsp\window.h">
+					RelativePath="..\src\dsp\window.h">
 				</File>
 				<Filter
 					Name="demod"
 					Filter="">
 					<File
-						RelativePath=".\src\dsp\demod\amdemod.c">
+						RelativePath="..\src\dsp\demod\amdemod.c">
 					</File>
 					<File
-						RelativePath=".\src\dsp\demod\amdemod.h">
+						RelativePath="..\src\dsp\demod\amdemod.h">
 					</File>
 					<File
-						RelativePath=".\src\dsp\demod\demod.h">
+						RelativePath="..\src\dsp\demod\demod.h">
 					</File>
 					<File
-						RelativePath=".\src\dsp\demod\fmdemod.c">
+						RelativePath="..\src\dsp\demod\fmdemod.c">
 					</File>
 					<File
-						RelativePath=".\src\dsp\demod\fmdemod.h">
+						RelativePath="..\src\dsp\demod\fmdemod.h">
 					</File>
 				</Filter>
 				<Filter
 					Name="util"
 					Filter="">
 					<File
-						RelativePath=".\src\dsp\util\cpuid.c">
+						RelativePath="..\src\dsp\util\cpuid.c">
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\cpuid.h">
+						RelativePath="..\src\dsp\util\cpuid.h">
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\cpuid0.asm">
+						RelativePath="..\src\dsp\util\cpuid0.asm">
 						<FileConfiguration
 							Name="Debug|Win32">
 							<Tool
@@ -645,16 +645,16 @@
 						</FileConfiguration>
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\dumparr.c">
+						RelativePath="..\src\dsp\util\dumparr.c">
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\dumparr.h">
+						RelativePath="..\src\dsp\util\dumparr.h">
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\misc.c">
+						RelativePath="..\src\dsp\util\misc.c">
 					</File>
 					<File
-						RelativePath=".\src\dsp\util\misc.h">
+						RelativePath="..\src\dsp\util\misc.h">
 					</File>
 				</Filter>
 			</Filter>
@@ -662,34 +662,34 @@
 				Name="input"
 				Filter="">
 				<File
-					RelativePath=".\src\input\filein.c">
+					RelativePath="..\src\input\filein.c">
 				</File>
 				<File
-					RelativePath=".\src\input\filein.h">
+					RelativePath="..\src\input\filein.h">
 				</File>
 				<File
-					RelativePath=".\src\input\filewnd.c">
+					RelativePath="..\src\input\filewnd.c">
 				</File>
 				<File
-					RelativePath=".\src\input\indesc.h">
+					RelativePath="..\src\input\indesc.h">
 				</File>
 				<File
-					RelativePath=".\src\input\inputlst.c">
+					RelativePath="..\src\input\inputlst.c">
 				</File>
 				<File
-					RelativePath=".\src\input\inputlst.h">
+					RelativePath="..\src\input\inputlst.h">
 				</File>
 				<File
-					RelativePath=".\src\input\rtlexp.h">
+					RelativePath="..\src\input\rtlexp.h">
 				</File>
 				<File
-					RelativePath=".\src\input\rtlsdr.c">
+					RelativePath="..\src\input\rtlsdr.c">
 				</File>
 				<File
-					RelativePath=".\src\input\rtlsdr.h">
+					RelativePath="..\src\input\rtlsdr.h">
 				</File>
 				<File
-					RelativePath=".\src\input\rtlwnd.c">
+					RelativePath="..\src\input\rtlwnd.c">
 				</File>
 			</Filter>
 		</Filter>
@@ -697,37 +697,37 @@
 			Name="res"
 			Filter="">
 			<File
-				RelativePath=".\res\resource.h">
+				RelativePath="..\res\resource.h">
 			</File>
 			<File
-				RelativePath=".\res\rxtest.rc">
+				RelativePath="..\res\rxtest.rc">
 			</File>
 			<Filter
 				Name="icon"
 				Filter="">
 				<File
-					RelativePath=".\res\icon\main.ico">
+					RelativePath="..\res\icon\main.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\mains.ico">
+					RelativePath="..\res\icon\mains.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procerr.ico">
+					RelativePath="..\res\icon\procerr.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procrndn.ico">
+					RelativePath="..\res\icon\procrndn.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procrnup.ico">
+					RelativePath="..\res\icon\procrnup.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procsqcl.ico">
+					RelativePath="..\res\icon\procsqcl.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procsqop.ico">
+					RelativePath="..\res\icon\procsqop.ico">
 				</File>
 				<File
-					RelativePath=".\res\icon\procstop.ico">
+					RelativePath="..\res\icon\procstop.ico">
 				</File>
 			</Filter>
 		</Filter>
