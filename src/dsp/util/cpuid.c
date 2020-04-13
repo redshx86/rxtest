@@ -32,8 +32,8 @@ void check_cpu_features()
 
 	win_version(&nt, &build, &minor, &major);
 
-	/* Windows 2000, XP or Server 2003 only */
-	if( nt && (build >= 2195) && (build <= 3790) )
+	/* Enable SSE code on NT 5.x and 6.x */
+	if( nt && (build >= 2195) && (build <= 9600) )
 	{
 		if(_is_cpuid_supported())
 		{
