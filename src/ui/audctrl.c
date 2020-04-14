@@ -241,7 +241,7 @@ static void audctrl_rx_state_handler(audctrl_ctx_t *ctx, unsigned int msg, void 
 		audctrl_update_level_start(ctx);
 		break;
 	case EVENT_RX_STATE_STOP:
-		audctrl_update_level_start(ctx);
+		audctrl_update_level_stop(ctx);
 		break;
 	case EVENT_RX_STATE_SET_OUT_GAIN:
 		audctrl_update_out_gain(ctx);
