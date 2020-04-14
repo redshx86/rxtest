@@ -43,8 +43,9 @@ typedef struct cmwnd_ctx {
 	/* common ui resources */
 	uicommon_t *uidata;
 
-	/* notification recepient window list */
-	callback_list_t *cb_list;
+	/* ui events */
+	uievent_t *event_procchan;
+	uievent_t *event_window_close;
 
 	/* configuration files */
 	ini_data_t *ini, *inich;
@@ -272,7 +273,7 @@ enum {
 
 /* create channel manager window */
 HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  rxstate_t *rx, HWND hwndMain, callback_list_t *cb_list);
+				  rxstate_t *rx, HWND hwndMain);
 
 /* register channel manager window class */
 int cmwnd_registerclass(uicommon_t *uidata);

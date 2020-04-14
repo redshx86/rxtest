@@ -103,9 +103,7 @@ static int filtcfg_apply(filtcfg_ctx_t *ctx)
 	{
 		notifyList.count = ctx->chidCount;
 		notifyList.items = ctx->chidList;
-
-		callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-			NOTIFY_PROCCHAN_FILTERCFG, &notifyList);
+		uievent_send(ctx->event_procchan, EVENT_PROCCHAN_FILTERCFG, &notifyList);
 	}
 
 	return (!error);
@@ -311,7 +309,7 @@ static int filtcfg_windowtitle(filtcfg_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int filtcfg_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwndOwner,
+int filtcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
 						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
@@ -325,7 +323,7 @@ int filtcfg_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwnd
 	}
 
 	ctx->uidata = uidata;
-	ctx->cb_list = cb_list;
+	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
 	ctx->chidList = chidList;

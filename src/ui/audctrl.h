@@ -39,9 +39,11 @@ typedef struct audctrl_ctx {
 	HWND hwnd;
 
 	uicommon_t *uidata;
-	callback_list_t *cb_list;
 	ini_data_t *ini;
 	rxstate_t *rx;
+
+	uievent_t *event_rx_state;
+	uievent_t *event_window_close;
 
 	int cx_frame;
 	int cy_frame;
@@ -91,7 +93,7 @@ typedef struct audctrl_ctx {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-HWND audctrl_create(uicommon_t *uidata, callback_list_t *cb_list, ini_data_t *ini,
+HWND audctrl_create(uicommon_t *uidata, ini_data_t *ini,
 					HWND hwnd_parent, rxstate_t *rx);
 
 /* ---------------------------------------------------------------------------------------------- */

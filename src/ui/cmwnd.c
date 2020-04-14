@@ -93,10 +93,8 @@ static int cmwnd_chanevent_addchan(cmwnd_ctx_t *ctx, unsigned int chid)
 /* broadcast notification about channel event (using affected channel list) */
 static void cmwnd_chanevent_notify(cmwnd_ctx_t *ctx, unsigned int code)
 {
-	if(ctx->chan_notify_list.count != 0) {
-		callback_list_call(ctx->cb_list,
-			NOTIFY_PROCCHAN, code, &(ctx->chan_notify_list));
-	}
+	if(ctx->chan_notify_list.count != 0)
+		uievent_send(ctx->event_procchan, code, &(ctx->chan_notify_list));
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -108,8 +106,7 @@ static void cmwnd_chanevent_notifysingle(cmwnd_ctx_t *ctx, unsigned int code, un
 
 	channel.count = 1;
 	channel.items = &chid;
-
-	callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN, code, &channel);
+	uievent_send(ctx->event_procchan, code, &channel);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -281,7 +278,7 @@ static int cmwnd_cl_edit_savename(cmwnd_ctx_t *ctx, TCHAR *str, rxproc_t *proc, 
 	}
 
 	/* broadcast notification */
-	cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_NAME, proc->chid);
+	cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_NAME, proc->chid);
 
 	return 1;
 }
@@ -299,7 +296,7 @@ static int cmwnd_setchanfreq(cmwnd_ctx_t *ctx, rxproc_t *proc, double fc)
 	rxproc_set_fc(proc, fc);
 
 	/* broadcast notification */
-	cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_FREQ, proc->chid);
+	cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_FREQ, proc->chid);
 
 	return 1;
 }
@@ -396,7 +393,7 @@ static int cmwnd_cl_edit_savefiltercutoff(cmwnd_ctx_t *ctx, TCHAR *str, rxproc_t
 	}
 
 	/* broadcast notification */
-	cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_FILTERCFG, proc->chid);
+	cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_FILTERCFG, proc->chid);
 
 	return 1;
 }
@@ -443,7 +440,7 @@ static int cmwnd_cl_edit_saveoutputgain(cmwnd_ctx_t *ctx, TCHAR *str, rxproc_t *
 	rxproc_set_output_gain(proc, gain);
 
 	/* broadcast notification */
-	cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_OUTPUTCFG, proc->chid);
+	cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_OUTPUTCFG, proc->chid);
 
 	return 1;
 }
@@ -926,9 +923,8 @@ static void cmwnd_cl_rowctls_cmd_showchanoptions(cmwnd_ctx_t *ctx, unsigned int 
 	{
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
-		chanopt_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, 1, pt.x, pt.y);
+		chanopt_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -944,9 +940,8 @@ static void cmwnd_cl_rowctls_cmd_showfilterconfig(cmwnd_ctx_t *ctx, unsigned int
 	{
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
-		filtcfg_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, 1, pt.x, pt.y);
+		filtcfg_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -961,8 +956,8 @@ static void cmdwnd_showdemodconfig(cmwnd_ctx_t *ctx, rxproc_demodtype_t type,
 	switch(type)
 	{
 	case RXPROC_DEMOD_FM:
-		fmcfg_createwindow(ctx->uidata, ctx->cb_list, ctx->hwnd,
-			ctx->rx, chidlist, chidcount, x, y);
+		fmcfg_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, chidcount, x, y);
 		break;
 
 	default:
@@ -1007,10 +1002,8 @@ static void cmwnd_cl_rowctls_cmd_showsqlconfig(cmwnd_ctx_t *ctx, unsigned int ch
 	{
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
-
-		sqlcfg_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, 1, pt.x, pt.y);
+		sqlcfg_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -1032,7 +1025,7 @@ static void cmwnd_cl_rowctls_cmd_changeoptputmode(cmwnd_ctx_t *ctx, cmwnd_rowdat
 		proc->cfg.output_mode = output_mode;
 
 		/* broadcast notification */
-		cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_OUTPUTCFG, proc->chid);
+		cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_OUTPUTCFG, proc->chid);
 	}
 }
 
@@ -1088,7 +1081,7 @@ static void cmwnd_cl_cmd_demodtypemenu(cmwnd_ctx_t *ctx, int demod_type)
 		}
 
 		/* broadcast notification */
-		cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_DEMODCFG, proc->chid);
+		cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_DEMODCFG, proc->chid);
 	}
 }
 
@@ -1529,15 +1522,14 @@ static void cmwnd_cl_clear(cmwnd_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* update channel list data (channel notification handling) */
-static void cmwnd_cl_updatechanneldata(cmwnd_ctx_t *ctx, unsigned int notify_code,
-									   notify_proc_list_t *chList)
+static void cmwnd_procchan_handler(cmwnd_ctx_t *ctx, unsigned int msg, notify_proc_list_t *chList)
 {
 	int index, row;
 	cmwnd_rowdata_t *rowdata;
 	rxproc_t *proc;
 
 	/* channels creation event */
-	if(notify_code == NOTIFY_PROCCHAN_CREATE)
+	if(msg == EVENT_PROCCHAN_CREATE)
 	{
 		/* create rows for channels */
 		for(index = 0; index < chList->count; index++)
@@ -1548,7 +1540,7 @@ static void cmwnd_cl_updatechanneldata(cmwnd_ctx_t *ctx, unsigned int notify_cod
 	}
 
 	/* channels deletion event */
-	else if(notify_code == NOITFY_PROCCHAN_DELETE)
+	else if(msg == EVENT_PROCCHAN_DELETE)
 	{
 		/* destroy associated rows */
 		for(index = 0; index < chList->count; index++)
@@ -1568,26 +1560,26 @@ static void cmwnd_cl_updatechanneldata(cmwnd_ctx_t *ctx, unsigned int notify_cod
 			if( ((proc = rx_proc_find(ctx->rx, chList->items[index])) != NULL) &&
 				((row = cmwnd_cl_getrowindexbychan(ctx, proc->chid, &rowdata)) != -1) )
 			{
-				switch(notify_code)
+				switch(msg)
 				{
 				/* update channel name */
-				case NOTIFY_PROCCHAN_NAME:
+				case EVENT_PROCCHAN_NAME:
 					cmwnd_cl_updaterow(ctx, row, CMWND_CLCOL_NAME, rowdata, proc);
 					break;
 				/* update carrier frequency */
-				case NOTIFY_PROCCHAN_FREQ:
+				case EVENT_PROCCHAN_FREQ:
 					cmwnd_cl_updaterow(ctx, row, CMWND_CLCOL_FREQ, rowdata, proc);
 					break;
 				/* update filter cutoff frequency */
-				case NOTIFY_PROCCHAN_FILTERCFG:
+				case EVENT_PROCCHAN_FILTERCFG:
 					cmwnd_cl_updaterow(ctx, row, CMWND_CLCOL_FILTER, rowdata, proc);
 					break;
 				/* update demodulator type */
-				case NOTIFY_PROCCHAN_DEMODCFG:
+				case EVENT_PROCCHAN_DEMODCFG:
 					cmwnd_cl_updaterow(ctx, row, CMWND_CLCOL_DEMOD, rowdata, proc);
 					break;
 				/* update output parameters */
-				case NOTIFY_PROCCHAN_OUTPUTCFG:
+				case EVENT_PROCCHAN_OUTPUTCFG:
 					cmwnd_cl_updaterow(ctx, row, CMWND_CLCOL_AUDIO, rowdata, proc);
 					break;
 				}
@@ -1597,6 +1589,27 @@ static void cmwnd_cl_updatechanneldata(cmwnd_ctx_t *ctx, unsigned int notify_cod
 				cmwnd_cl_updatestatusicon(ctx, row, rowdata, proc);
 			}
 		}
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* update channel status (rx state change handler) */
+static void cmwnd_rx_state_handler(cmwnd_ctx_t *ctx, unsigned int msg, void *data)
+{
+	switch(msg)
+	{
+	case EVENT_RX_STATE_START:
+		cmwnd_cl_updateallstatusicons(ctx);
+		cmwnd_cl_levelmtr_start(ctx);
+		break;
+	case EVENT_RX_STATE_STOP:
+		cmwnd_cl_updateallstatusicons(ctx);
+		cmwnd_cl_levelmtr_stop(ctx);
+		break;
+	case EVENT_RX_STATE_SET_INPUT_FC:
+		cmwnd_cl_updateallstatusicons(ctx);
+		break;
 	}
 }
 
@@ -1622,7 +1635,7 @@ static int cmwnd_insertchannel(cmwnd_ctx_t *ctx)
 	else
 	{
 		/* broadcast notification */
-		cmwnd_chanevent_notifysingle(ctx, NOTIFY_PROCCHAN_CREATE, proc->chid);
+		cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_CREATE, proc->chid);
 
 		return 1;
 	}
@@ -1658,7 +1671,7 @@ static void cmwnd_deletechannels(cmwnd_ctx_t *ctx, int *rowlist, int count)
 		}
 
 		/* broadcast notification */
-		cmwnd_chanevent_notify(ctx, NOITFY_PROCCHAN_DELETE);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_DELETE);
 	}
 }
 
@@ -1797,7 +1810,7 @@ static void cmwnd_adjustselectedchannelsfreq(cmwnd_ctx_t *ctx, UINT uCmdId)
 		}
 
 		/* broadcast notifications */
-		cmwnd_chanevent_notify(ctx, NOTIFY_PROCCHAN_FREQ);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_FREQ);
 	}
 }
 
@@ -1858,7 +1871,7 @@ static void cmwnd_setselectedchanoutputgain(cmwnd_ctx_t *ctx, UINT ucmd)
 		}
 
 		/* broadcast notifications */
-		cmwnd_chanevent_notify(ctx, NOTIFY_PROCCHAN_OUTPUTCFG);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_OUTPUTCFG);
 	}
 }
 
@@ -1909,7 +1922,7 @@ static void cmwnd_setselectedchanoutputmode(cmwnd_ctx_t *ctx, UINT ucmd)
 		}
 
 		/* broadcast notifications */
-		cmwnd_chanevent_notify(ctx, NOTIFY_PROCCHAN_OUTPUTCFG);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_OUTPUTCFG);
 	}
 }
 
@@ -1948,7 +1961,7 @@ static void cmwnd_cycleselectedchanoutputmode(cmwnd_ctx_t *ctx)
 		}
 
 		/* broadcast notifications */
-		cmwnd_chanevent_notify(ctx, NOTIFY_PROCCHAN_OUTPUTCFG);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_OUTPUTCFG);
 	}
 }
 
@@ -2009,9 +2022,8 @@ static void cmwnd_showselectedchanoptions(cmwnd_ctx_t *ctx, POINT *ppt)
 
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
-		chanopt_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, chidcount, ppt->x, ppt->y);
+		chanopt_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -2032,9 +2044,8 @@ static void cmwnd_showselectedchanfilterconfig(cmwnd_ctx_t *ctx, POINT *ppt)
 
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
-		filtcfg_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, chidcount, ppt->x, ppt->y);
+		filtcfg_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -2101,9 +2112,8 @@ static void cmwnd_showselectedchansqlconfig(cmwnd_ctx_t *ctx, POINT *ppt)
 
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
-		sqlcfg_createwindow(
-			ctx->uidata, ctx->cb_list, ctx->hwnd, ctx->rx,
-			chidlist, chidcount, ppt->x, ppt->y);
+		sqlcfg_createwindow(ctx->uidata, ctx->event_procchan,
+			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -2927,7 +2937,7 @@ static void cmwnd_loadselectedpreset(cmwnd_ctx_t *ctx, int append)
 				cmwnd_chanevent_addchan(ctx, proc->chid);
 			}
 		}
-		cmwnd_chanevent_notify(ctx, NOTIFY_PROCCHAN_CREATE);
+		cmwnd_chanevent_notify(ctx, EVENT_PROCCHAN_CREATE);
 	}
 }
 
@@ -3092,7 +3102,7 @@ static void cmwnd_showconfig(cmwnd_ctx_t *ctx)
 	cmcfg_data_t cfg;
 
 	GetWindowRect(ctx->hwnd, &rc);
-	hwnd = cmcfg_create(ctx->uidata, ctx->cb_list, ctx->hwnd, rc.left + 15, rc.top + 10);
+	hwnd = cmcfg_create(ctx->uidata, ctx->hwnd, rc.left + 15, rc.top + 10);
 
 	if(hwnd != NULL)
 	{
@@ -3110,23 +3120,26 @@ static void cmwnd_showconfig(cmwnd_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-static void cmwnd_setconfig(cmwnd_ctx_t *ctx, cmcfg_data_t *cfg)
+static void cmwnd_setconfig_handler(cmwnd_ctx_t *ctx, unsigned int msg, cmcfg_data_t *cfg)
 {
-	if(cfg->dispUnitChanFreq != ctx->dispUnitChanFreq)
+	if(msg == EVENT_CHANMGR_SETCONFIG)
 	{
-		ctx->dispUnitChanFreq = cfg->dispUnitChanFreq;
-		cmwnd_cl_updateallrows(ctx, CMWND_CLCOL_FREQ);
-	}
+		if(cfg->dispUnitChanFreq != ctx->dispUnitChanFreq)
+		{
+			ctx->dispUnitChanFreq = cfg->dispUnitChanFreq;
+			cmwnd_cl_updateallrows(ctx, CMWND_CLCOL_FREQ);
+		}
 
-	if(cfg->dispUnitFiltCutoff != ctx->dispUnitFiltCutoff)
-	{
-		ctx->dispUnitFiltCutoff = cfg->dispUnitFiltCutoff;
-		cmwnd_cl_updateallrows(ctx, CMWND_CLCOL_FILTER);
-	}
+		if(cfg->dispUnitFiltCutoff != ctx->dispUnitFiltCutoff)
+		{
+			ctx->dispUnitFiltCutoff = cfg->dispUnitFiltCutoff;
+			cmwnd_cl_updateallrows(ctx, CMWND_CLCOL_FILTER);
+		}
 
-	cmwnd_cl_levelmtr_setrange(ctx, cfg->levelMin, cfg->levelMax);
-	cmwnd_cl_levelmtr_setinterval(ctx, (unsigned int)(cfg->levelUpdateInt));
-	ctx->levelScaleToInputFc = cfg->levelScaleToInputFc;
+		cmwnd_cl_levelmtr_setrange(ctx, cfg->levelMin, cfg->levelMax);
+		cmwnd_cl_levelmtr_setinterval(ctx, (unsigned int)(cfg->levelUpdateInt));
+		ctx->levelScaleToInputFc = cfg->levelScaleToInputFc;
+	}
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -3177,48 +3190,6 @@ static int cmwnd_command(cmwnd_ctx_t *ctx, UINT uCtrlId, UINT uEventId)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* channel manager window MSG_NOTIFY_BUS message handler */
-static void cmwnd_callback(cmwnd_ctx_t *ctx, unsigned int type, unsigned int code, void *data)
-{
-	switch(type)
-	{
-	/* channel creation, deletion, config change */
-	case NOTIFY_RX:
-		switch(code)
-		{
-		case NOTIFY_RX_START:
-			cmwnd_cl_updateallstatusicons(ctx);
-			cmwnd_cl_levelmtr_start(ctx);
-			break;
-		case NOTIFY_RX_STOP:
-			cmwnd_cl_updateallstatusicons(ctx);
-			cmwnd_cl_levelmtr_stop(ctx);
-			break;
-		case NOTIFY_RX_SET_INPUT_FC:
-			cmwnd_cl_updateallstatusicons(ctx);
-			break;
-		}
-		break;
-
-	/* channel creation, deletion, config change */
-	case NOTIFY_PROCCHAN:
-		cmwnd_cl_updatechanneldata(ctx, code, data);
-		break;
-
-	/* channel manager config */
-	case NOTIFY_CHANMGR:
-		switch(code)
-		{
-		case NOTIFY_CHANMGR_SETCONFIG:
-			cmwnd_setconfig(ctx, data);
-			break;
-		}
-		break;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
 /* channel manager window WM_SIZE message handler */
 static void cmwnd_resize(cmwnd_ctx_t *ctx, int mode, int cw, int ch)
 {
@@ -3265,11 +3236,9 @@ static int cmwnd_init(cmwnd_ctx_t *ctx)
 	cmwnd_cl_fillrows(ctx);
 
 	/* subscribe to notifications */
-	if(!callback_list_add(ctx->cb_list, ctx, cmwnd_callback, 
-		(1<<NOTIFY_PROCCHAN)|(1<<NOTIFY_RX)|(1<<NOTIFY_CHANMGR)))
-	{
-		status = 0;
-	}
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, cmwnd_rx_state_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, cmwnd_procchan_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_CHANMGRCFG, ctx, cmwnd_setconfig_handler);
 
 	return status;
 }
@@ -3280,7 +3249,9 @@ static int cmwnd_init(cmwnd_ctx_t *ctx)
 static void cmwnd_destroy(cmwnd_ctx_t *ctx)
 {
 	/* unsubscribe from notifications */
-	callback_list_remove(ctx->cb_list, cmwnd_callback, 0);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_CHANMGRCFG, ctx, cmwnd_setconfig_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, cmwnd_procchan_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, cmwnd_rx_state_handler);
 
 	/* save params */
 	cmwnd_cl_colcx_save(ctx);
@@ -3302,8 +3273,7 @@ static void cmwnd_destroy(cmwnd_ctx_t *ctx)
 		UI_POS_OFFSET|UI_POS_SIZE, ctx->cx_frame, ctx->cy_frame);
 
 	/* send destroying notification */
-	callback_list_call(ctx->cb_list, NOTIFY_WNDCLOSE,
-		NOTIFY_WNDCLOSE_CHANNELMGR, ctx->hwnd);
+	uievent_send(ctx->event_window_close, EVENT_WNDCLOSE_CHANNELMGR, ctx->hwnd);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -3400,7 +3370,7 @@ static LRESULT CALLBACK cmwnd_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 /* Create channel manager window */
 
 HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  rxstate_t *rx, HWND hwndMain, callback_list_t *cb_list)
+				  rxstate_t *rx, HWND hwndMain)
 {
 	cmwnd_ctx_t *ctx;
 	int winw, winh, xpos, ypos;
@@ -3415,11 +3385,14 @@ HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
 	ctx->hwndMain = hwndMain;
 
 	ctx->uidata = uidata;
-	ctx->cb_list = cb_list;
 
 	ctx->ini = ini;
 	ctx->inich = inich;
 	ctx->rx = rx;
+
+	/* register events */
+	ctx->event_procchan = uievent_register(&(uidata->event_list), EVENT_NAME_PROCCHAN);
+	ctx->event_window_close = uievent_register(&(uidata->event_list), EVENT_NAME_WNDCLOSE);
 
 	/* window size and position */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

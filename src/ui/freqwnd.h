@@ -17,7 +17,10 @@ typedef struct freqwnd_ctx {
 	HWND hwndMain;
 	uicommon_t *uidata;
 	ini_data_t *ini;
-	callback_list_t *cb_list;
+
+	uievent_t *event_window_close;
+	uievent_t *event_rx_state;
+	uievent_t *event_visualcfg;
 
 	freqcfg_t *fcfg;
 	rxstate_t *rx;
@@ -89,7 +92,7 @@ typedef struct freqwnd_ctx {
 
 HWND freqwnd_create(uicommon_t *uidata, ini_data_t *ini, freqcfg_t *fcfg,
 					rxstate_t *rx, specview_ctx_t *specview, watrview_ctx_t *watrview,
-					HWND hwndMain, callback_list_t *cb_list);
+					HWND hwndMain);
 
 int freqwnd_registerclass(uicommon_t *uidata);
 void freqwnd_unregisterclass(HINSTANCE h_inst);

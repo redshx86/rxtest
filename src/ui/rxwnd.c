@@ -66,7 +66,7 @@ static void rxwnd_cmd_showfreqwnd(rxwnd_ctx_t *ctx)
 	{
 		if( (ctx->hwndFreqWnd = freqwnd_create(
 			ctx->uidata, ctx->ini, &(ctx->fcfg), ctx->rx, ctx->specview, ctx->watrview,
-			ctx->hwnd, ctx->cb_list)) == NULL )
+			ctx->hwnd)) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create frequency window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -104,7 +104,7 @@ static void rxwnd_cmd_showchannelmgr(rxwnd_ctx_t *ctx)
 		(!IsWindow(ctx->hwndChannelMgr)) )
 	{
 		if( (ctx->hwndChannelMgr = cmwnd_create(ctx->uidata, ctx->ini, ctx->inich,
-			ctx->rx, ctx->hwnd, ctx->cb_list)) == NULL )
+			ctx->rx, ctx->hwnd)) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create channel manager window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -142,7 +142,7 @@ static void rxwnd_cmd_showsettingswnd(rxwnd_ctx_t *ctx)
 		(!IsWindow(ctx->hwndSettings)) )
 	{
 		if( (ctx->hwndSettings = setwnd_create(
-			ctx->uidata, ctx->hwnd, ctx->ini, ctx->cb_list,
+			ctx->uidata, ctx->hwnd, ctx->ini,
 			ctx->rx, ctx->specview, ctx->watrview)) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create settings window."),
@@ -181,7 +181,7 @@ static void rxwnd_cmd_showaudctrlwnd(rxwnd_ctx_t *ctx)
 		(!IsWindow(ctx->hwndAudCtrl)) )
 	{
 		if( (ctx->hwndAudCtrl = audctrl_create(
-			ctx->uidata, ctx->cb_list, ctx->ini, ctx->hwnd, ctx->rx)) == NULL )
+			ctx->uidata, ctx->ini, ctx->hwnd, ctx->rx)) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create audio output control window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -213,20 +213,20 @@ static void rxwnd_handle_audctrl_wndclose(rxwnd_ctx_t *ctx, HWND hwndAudCtrl)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* other window closing notification */
-static void rxwnd_handle_otherwndclose(rxwnd_ctx_t *ctx, unsigned int code, HWND hwndClosed)
+static void rxwnd_window_close_handler(rxwnd_ctx_t *ctx, unsigned int msg, HWND hwndClosed)
 {
-	switch(code)
+	switch(msg)
 	{
-	case NOTIFY_WNDCLOSE_FREQWND:
+	case EVENT_WNDCLOSE_FREQWND:
 		rxwnd_handle_freqwnd_wndclose(ctx, hwndClosed);
 		break;
-	case NOTIFY_WNDCLOSE_CHANNELMGR:
+	case EVENT_WNDCLOSE_CHANNELMGR:
 		rxwnd_handle_channelmgr_wndclose(ctx, hwndClosed);
 		break;
-	case NOTIFY_WNDCLOSE_SETTINGS:
+	case EVENT_WNDCLOSE_SETTINGS:
 		rxwnd_handle_settings_wndclose(ctx, hwndClosed);
 		break;
-	case NOTIFY_WNDCLOSE_AUDCTRL:
+	case EVENT_WNDCLOSE_AUDCTRL:
 		rxwnd_handle_audctrl_wndclose(ctx, hwndClosed);
 		break;
 	}
@@ -537,21 +537,21 @@ static void rxwnd_visualcleanup(rxwnd_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* update viewers data when channel config changes */
-static void rxwnd_handle_chancfgchange(rxwnd_ctx_t *ctx, unsigned int code,
-									   notify_proc_list_t *channelList)
+static void rxwnd_procchan_handler(rxwnd_ctx_t *ctx, unsigned int msg,
+								   notify_proc_list_t *channelList)
 {
-	switch(code)
+	switch(msg)
 	{
-	case NOTIFY_PROCCHAN_CREATE:
-	case NOITFY_PROCCHAN_DELETE:
-	case NOTIFY_PROCCHAN_FREQ:
-	case NOTIFY_PROCCHAN_FILTERCFG:
+	case EVENT_PROCCHAN_CREATE:
+	case EVENT_PROCCHAN_DELETE:
+	case EVENT_PROCCHAN_FREQ:
+	case EVENT_PROCCHAN_FILTERCFG:
 		specview_set_chmap(ctx->specview);
 		specview_set_sql(ctx->specview, 0, 0);
 		watrview_set_chmap(ctx->watrview);
 		rxwnd_visualupdate(ctx, 1, 1);
 		break;
-	case NOTIFY_PROCCHAN_SQLCFG:
+	case EVENT_PROCCHAN_SQLCFG:
 		specview_set_sql(ctx->specview, 0, 0);
 		rxwnd_visualupdate(ctx, 1, 0);
 		break;
@@ -561,17 +561,17 @@ static void rxwnd_handle_chancfgchange(rxwnd_ctx_t *ctx, unsigned int code,
 /* ---------------------------------------------------------------------------------------------- */
 
 /* update viewers when viewers config changes */
-static void rxwnd_handle_visualcfgchange(rxwnd_ctx_t *ctx, unsigned int code)
+static void rxwnd_visualcfg_handler(rxwnd_ctx_t *ctx, unsigned int msg, void *data)
 {
-	switch(code)
+	switch(msg)
 	{
-	case NOTIFY_VISUALCFG_SPECVIEW:
+	case EVENT_VISUALCFG_SPECVIEW:
 		rxwnd_visualupdate(ctx, 1, 0);
 		break;
-	case NOTIFY_VISUALCFG_WATRVIEW:
+	case EVENT_VISUALCFG_WATRVIEW:
 		rxwnd_visualupdate(ctx, 0, 1);
 		break;
-	case NOTIFY_VISUALCFG_FREQ_RANGE:
+	case EVENT_VISUALCFG_FREQ_RANGE:
 		rxwnd_visualupdate(ctx, 1, 1);
 		break;
 	}
@@ -597,7 +597,7 @@ static int rxwnd_setinputfc(rxwnd_ctx_t *ctx, double fc_input, int notify)
 	}
 
 	if( (res > 0) && notify ) {
-		callback_list_call(ctx->cb_list, NOTIFY_RX, NOTIFY_RX_SET_INPUT_FC, NULL);
+		uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_INPUT_FC, NULL);
 	}
 
 	return res;
@@ -636,8 +636,7 @@ static int rxwnd_setdispfreqrange(rxwnd_ctx_t *ctx, double f_0, double f_1, int 
 		if(is_changed)
 		{
 			if(notify) {
-				callback_list_call(ctx->cb_list,
-					NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_FREQ_RANGE, NULL);
+				uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_FREQ_RANGE, NULL);
 			}
 			return 1;
 		}
@@ -813,13 +812,11 @@ static void rxwnd_drag_specview_plot_and_input_fc(rxwnd_ctx_t *ctx, int dx_full)
 
 		/* send notifications */
 		if(set_inputfc_res > 0) {
-			callback_list_call(ctx->cb_list,
-				NOTIFY_RX, NOTIFY_RX_SET_INPUT_FC, NULL);
+			uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_INPUT_FC, NULL);
 		}
 
 		if(set_disprange_res > 0) {
-			callback_list_call(ctx->cb_list,
-				NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_FREQ_RANGE, NULL);
+			uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_FREQ_RANGE, NULL);
 		}
 	}
 }
@@ -870,8 +867,7 @@ static void rxwnd_drag_chan_fc(rxwnd_ctx_t *ctx, unsigned int chid, int dx_full)
 
 				notifychid.count = 1;
 				notifychid.items = &chid;
-				callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-					NOTIFY_PROCCHAN_FREQ, &notifychid);
+				uievent_send(ctx->event_procchan, EVENT_PROCCHAN_FREQ, &notifychid);
 			}
 
 			ctx->dragstate.chan_param_cur = fc;
@@ -939,8 +935,7 @@ static void rxwnd_drag_chan_bw_edge(rxwnd_ctx_t *ctx, unsigned int chid, int dx_
 				{
 					notifychid.count = 1;
 					notifychid.items = &chid;
-					callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-						NOTIFY_PROCCHAN_FILTERCFG, &notifychid);
+					uievent_send(ctx->event_procchan, EVENT_PROCCHAN_FILTERCFG, &notifychid);
 				}
 			}
 
@@ -1016,8 +1011,7 @@ static void rxwnd_drag_chan_sql_thres(rxwnd_ctx_t *ctx, unsigned int chid, int d
 			{
 				notifychid.count = 1;
 				notifychid.items = &chid;
-				callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-					NOTIFY_PROCCHAN_SQLCFG, &notifychid);
+				uievent_send(ctx->event_procchan, EVENT_PROCCHAN_SQLCFG, &notifychid);
 			}
 
 			ctx->dragstate.chan_param_cur = thres_cur;
@@ -1032,8 +1026,7 @@ static void rxwnd_drag_watrview_img(rxwnd_ctx_t *ctx, int dy)
 {
 	if(watrview_scroll(ctx->watrview, -dy))
 	{
-		callback_list_call(ctx->cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_WATRVIEW, NULL);
+		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
 	}
 }
 
@@ -1048,8 +1041,7 @@ static void rxwnd_drag_watrview_scrbar(rxwnd_ctx_t *ctx, int dy_full)
 
 	if(watrview_drag_scrbar(ctx->watrview, scrbar_pos))
 	{
-		callback_list_call(ctx->cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_WATRVIEW, NULL);
+		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
 	}
 }
 
@@ -1388,8 +1380,7 @@ static void rxwnd_wheel_watrview(rxwnd_ctx_t *ctx, int delta, WORD fwKeys)
 
 	if(watrview_scroll(ctx->watrview, -delta))
 	{
-		callback_list_call(ctx->cb_list, NOTIFY_VISUALCFG,
-			NOTIFY_VISUALCFG_WATRVIEW, NULL);
+		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
 	}
 }
 
@@ -1437,7 +1428,7 @@ static int rxwnd_cmd_rxstart(rxwnd_ctx_t *ctx)
 	}
 
 	/* broadacast notifications */
-	callback_list_call(ctx->cb_list, NOTIFY_RX, NOTIFY_RX_START, NULL);
+	uievent_send(ctx->event_rx_state, EVENT_RX_STATE_START, NULL);
 
 	return 1;
 }
@@ -1457,7 +1448,7 @@ static int rxwnd_cmd_rxstop(rxwnd_ctx_t *ctx)
 	rxwnd_setcursor(ctx, NULL);
 
 	/* broadcast notifications */
-	callback_list_call(ctx->cb_list, NOTIFY_RX, NOTIFY_RX_STOP, NULL);
+	uievent_send(ctx->event_rx_state, EVENT_RX_STATE_STOP, NULL);
 
 	return 1;
 }
@@ -1530,17 +1521,17 @@ static void rxwnd_handle_rxsetinputfc(rxwnd_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* handle receiver event */
-static void rxwnd_handle_rxcallback(rxwnd_ctx_t *ctx, int code)
+static void rxwnd_rx_state_handler(rxwnd_ctx_t *ctx, unsigned int msg, void *data)
 {
-	switch(code)
+	switch(msg)
 	{
-	case NOTIFY_RX_START:
+	case EVENT_RX_STATE_START:
 		rxwnd_handle_rxstart(ctx);
 		break;
-	case NOTIFY_RX_STOP:
+	case EVENT_RX_STATE_STOP:
 		rxwnd_handle_rxstop(ctx);
 		break;
-	case NOTIFY_RX_SET_INPUT_FC:
+	case EVENT_RX_STATE_SET_INPUT_FC:
 		rxwnd_handle_rxsetinputfc(ctx);
 		break;
 	}
@@ -1565,34 +1556,11 @@ void rxwnd_rxproc_act_change(rxwnd_ctx_t *ctx, unsigned int chid)
 
 	chlist.count = 1;
 	chlist.items = &chid;
-
-	callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN, NOTIFY_PROCCHAN_ACTIVITY, &chlist);
+	uievent_send(ctx->event_procchan, EVENT_PROCCHAN_ACTIVITY, &chlist);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Main window init, cleanup and mesage handling */
-
-/* main window notification bus message handler */
-static void rxwnd_callback(rxwnd_ctx_t *ctx, unsigned int type, unsigned int code, void *data)
-{
-	switch(type)
-	{
-	case NOTIFY_WNDCLOSE:
-		rxwnd_handle_otherwndclose(ctx, code, data);
-		break;
-	case NOTIFY_RX:
-		rxwnd_handle_rxcallback(ctx, code);
-		break;
-	case NOTIFY_PROCCHAN:
-		rxwnd_handle_chancfgchange(ctx, code, data);
-		break;
-	case NOTIFY_VISUALCFG:
-		rxwnd_handle_visualcfgchange(ctx, code);
-		break;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
 
 /* restore receiver state*/
 static void rxwnd_rxstaterestore(rxwnd_ctx_t *ctx)
@@ -1747,9 +1715,10 @@ static int rxwnd_handle_init(rxwnd_ctx_t *ctx)
 		rxwnd_accel_table, sizeof(rxwnd_accel_table) / sizeof(ACCEL));
 
 	/* subscribe to notifications */
-	callback_list_add(ctx->cb_list, ctx, rxwnd_callback,
-		(1<<NOTIFY_WNDCLOSE)|(1<<NOTIFY_RX)|
-		(1<<NOTIFY_PROCCHAN)|(1<<NOTIFY_VISUALCFG));
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_WNDCLOSE, ctx, rxwnd_window_close_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, rxwnd_rx_state_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, rxwnd_procchan_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, rxwnd_visualcfg_handler);
 
 	/* restore receiver state after small timeout */
 	SetTimer(ctx->hwnd, RXWND_IDT_SESSIONRELOAD, 15, NULL);
@@ -1763,7 +1732,10 @@ static int rxwnd_handle_init(rxwnd_ctx_t *ctx)
 static void rxwnd_handle_destroy(rxwnd_ctx_t *ctx)
 {
 	/* unsubscribe from notifications */
-	callback_list_remove(ctx->cb_list, rxwnd_callback, 0);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, rxwnd_visualcfg_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, rxwnd_procchan_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, rxwnd_rx_state_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_WNDCLOSE, ctx, rxwnd_window_close_handler);
 
 	/* delete hotkey table */
 	DestroyAcceleratorTable(ctx->haccel);
@@ -1993,7 +1965,7 @@ static void rxwnd_createmenu(rxwnd_ctx_t *ctx)
 
 /* create main window */
 HWND rxwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  callback_list_t *cb_list, int n_show)
+				  int n_show)
 {
 	rxwnd_ctx_t *ctx;
 	HWND hwnd;
@@ -2006,7 +1978,10 @@ HWND rxwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
 	ctx->uidata = uidata;
 	ctx->ini = ini;
 	ctx->inich = inich;
-	ctx->cb_list = cb_list;
+
+	ctx->event_rx_state = uievent_register(&(uidata->event_list), EVENT_NAME_RX_STATE);
+	ctx->event_procchan = uievent_register(&(uidata->event_list), EVENT_NAME_PROCCHAN);
+	ctx->event_visualcfg = uievent_register(&(uidata->event_list), EVENT_NAME_VISUALCFG);
 
 	/* calculate window position */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

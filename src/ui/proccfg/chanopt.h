@@ -15,9 +15,7 @@ typedef struct chanopt_ctx {
 
 	/* common ui resources */
 	uicommon_t *uidata;
-
-	/* global callback list */
-	callback_list_t *cb_list;
+	uievent_t *event_procchan;
 
 	/* receiver state */
 	rxstate_t *rx;
@@ -60,7 +58,7 @@ typedef struct chanopt_ctx {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int chanopt_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwndOwner,
+int chanopt_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
 						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y);
 
 int chanopt_registerclass(uicommon_t *uidata);

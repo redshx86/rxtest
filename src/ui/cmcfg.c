@@ -103,7 +103,7 @@ static int cmcfg_apply(cmcfg_ctx_t *ctx)
 	if(Button_GetCheck(ctx->hwndBtnLevelScaleToInputBw) & BST_CHECKED)
 		cfg.levelScaleToInputFc = 1;
 
-	callback_list_call(ctx->cb_list, NOTIFY_CHANMGR, NOTIFY_CHANMGR_SETCONFIG, &cfg);
+	uievent_send(ctx->event_chanmgrcfg, EVENT_CHANMGR_SETCONFIG, &cfg);
 
 	return 1;
 }
@@ -238,7 +238,7 @@ static LRESULT CALLBACK cmcfg_proc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-HWND cmcfg_create(uicommon_t *uidata, callback_list_t *cb_list, HWND hwnd_owner, int x, int y)
+HWND cmcfg_create(uicommon_t *uidata, HWND hwnd_owner, int x, int y)
 {
 	cmcfg_ctx_t *ctx;
 	HWND hwnd;
@@ -247,7 +247,8 @@ HWND cmcfg_create(uicommon_t *uidata, callback_list_t *cb_list, HWND hwnd_owner,
 	if( (ctx = calloc(1, sizeof(cmcfg_ctx_t))) != NULL )
 	{
 		ctx->uidata = uidata;
-		ctx->cb_list = cb_list;
+
+		ctx->event_chanmgrcfg = uievent_register(&(uidata->event_list), EVENT_NAME_CHANMGRCFG);
 
 		ui_window_size(CMCFG_W, CMCFG_H, &wcx, &wcy, UI_FRAME_FIXED|UI_FRAME_CAPTION);
 

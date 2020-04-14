@@ -136,12 +136,6 @@
 					RelativePath="..\src\util\buf.h">
 				</File>
 				<File
-					RelativePath="..\src\util\callback.c">
-				</File>
-				<File
-					RelativePath="..\src\util\callback.h">
-				</File>
-				<File
 					RelativePath="..\src\util\db.h">
 				</File>
 				<File
@@ -252,6 +246,12 @@
 				</File>
 				<File
 					RelativePath="..\src\ui\uicommon.h">
+				</File>
+				<File
+					RelativePath="..\src\ui\uievent.c">
+				</File>
+				<File
+					RelativePath="..\src\ui\uievent.h">
 				</File>
 				<File
 					RelativePath="..\src\ui\uimain.c">

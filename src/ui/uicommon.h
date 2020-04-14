@@ -17,6 +17,7 @@
 #include "../util/numparse.h"
 #include "../util/iniparse.h"
 #include "../util/macro.h"
+#include "uievent.h"
 #include "notifmsg.h"
 #include "keynav.h"
 
@@ -41,6 +42,8 @@ typedef struct uicommon_accel {
 /* ---------------------------------------------------------------------------------------------- */
 
 typedef struct uicommon {
+
+	uievent_list_t event_list;
 
 	keynav_ctx_t keynav;
 	uicommon_accel_t accel;

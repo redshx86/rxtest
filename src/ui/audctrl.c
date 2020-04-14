@@ -227,29 +227,24 @@ static void audctrl_set_out_gain(audctrl_ctx_t *ctx)
 			return;
 		}
 
-		callback_list_call(ctx->cb_list, NOTIFY_RX, NOTIFY_RX_SET_OUT_GAIN, NULL);
+		uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_OUT_GAIN, NULL);
 	}
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 
-static void audctrl_callback(audctrl_ctx_t *ctx, unsigned int code, unsigned int type, void *data)
+static void audctrl_rx_state_handler(audctrl_ctx_t *ctx, unsigned int msg, void *data)
 {
-	switch(code)
+	switch(msg)
 	{
-	case NOTIFY_RX:
-		switch(type)
-		{
-		case NOTIFY_RX_START:
-			audctrl_update_level_start(ctx);
-			break;
-		case NOTIFY_RX_STOP:
-			audctrl_update_level_start(ctx);
-			break;
-		case NOTIFY_RX_SET_OUT_GAIN:
-			audctrl_update_out_gain(ctx);
-			break;
-		}
+	case EVENT_RX_STATE_START:
+		audctrl_update_level_start(ctx);
+		break;
+	case EVENT_RX_STATE_STOP:
+		audctrl_update_level_start(ctx);
+		break;
+	case EVENT_RX_STATE_SET_OUT_GAIN:
+		audctrl_update_out_gain(ctx);
 		break;
 	}
 }
@@ -294,8 +289,8 @@ static int audctrl_init(audctrl_ctx_t *ctx)
 
 	audctrl_create_gain_trackbar(ctx);
 
-	if(!callback_list_add(ctx->cb_list, ctx, audctrl_callback, (1<<NOTIFY_RX)))
-		return 0;
+	uievent_handler_add(&(ctx->uidata->event_list),
+		EVENT_NAME_RX_STATE, ctx, audctrl_rx_state_handler);
 
 	ui_crt_static(ctx->uidata, ctx->hwnd, 0,
 		10, 70, 160, 15, _T("Output level meter:"), ID_CTL_STATIC);
@@ -354,8 +349,9 @@ static void audctrl_destroy(audctrl_ctx_t *ctx)
 	DeleteObject(ctx->clip_ind.hbr_soft);
 	DeleteObject(ctx->clip_ind.hbr_hard);
 
-	callback_list_call(ctx->cb_list, NOTIFY_WNDCLOSE, NOTIFY_WNDCLOSE_AUDCTRL, ctx->hwnd);
-	callback_list_remove(ctx->cb_list, audctrl_callback, 0);
+	uievent_send(ctx->event_window_close, EVENT_WNDCLOSE_AUDCTRL, ctx->hwnd);
+	uievent_handler_remove(&(ctx->uidata->event_list),
+		EVENT_NAME_RX_STATE, ctx, audctrl_rx_state_handler);
 
 	ui_savepos(ctx->hwnd, ini_sect_get(ctx->ini, _T("audctrl"), 1), 
 		UI_POS_OFFSET, ctx->cx_frame, ctx->cy_frame);
@@ -428,8 +424,7 @@ static LRESULT CALLBACK audctrl_proc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-HWND audctrl_create(uicommon_t *uidata, callback_list_t *cb_list, ini_data_t *ini,
-					HWND hwnd_parent, rxstate_t *rx)
+HWND audctrl_create(uicommon_t *uidata, ini_data_t *ini, HWND hwnd_parent, rxstate_t *rx)
 {
 	audctrl_ctx_t *ctx;
 	int wx, wy, wcx, wcy;
@@ -439,9 +434,11 @@ HWND audctrl_create(uicommon_t *uidata, callback_list_t *cb_list, ini_data_t *in
 	if( (ctx = calloc(1, sizeof(audctrl_ctx_t))) != NULL )
 	{
 		ctx->uidata = uidata;
-		ctx->cb_list = cb_list;
 		ctx->ini = ini;
 		ctx->rx = rx;
+
+		ctx->event_rx_state = uievent_register(&(uidata->event_list), EVENT_NAME_RX_STATE);
+		ctx->event_window_close = uievent_register(&(uidata->event_list), EVENT_NAME_WNDCLOSE);
 
 		ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame), UI_FRAME_FIXED|UI_FRAME_CAPTION);
 

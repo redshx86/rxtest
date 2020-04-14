@@ -33,7 +33,8 @@ typedef struct cmcfg_ctx {
 	HWND hwnd;
 
 	uicommon_t *uidata;
-	callback_list_t *cb_list;
+
+	uievent_t *event_chanmgrcfg;
 
 	HWND hwndBtnChanFreqUnitHz;
 	HWND hwndBtnChanFreqUnitKhz;
@@ -77,7 +78,7 @@ typedef struct cmcfg_ctx {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-HWND cmcfg_create(uicommon_t *uidata, callback_list_t *cb_list, HWND hwnd_owner, int x, int y);
+HWND cmcfg_create(uicommon_t *uidata, HWND hwnd_owner, int x, int y);
 
 void cmcfg_load(HWND hwnd, cmcfg_data_t *cfg);
 

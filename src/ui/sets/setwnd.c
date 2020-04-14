@@ -47,19 +47,19 @@ static int setwnd_data_apply(setwnd_ctx_t *ctx)
 	pageaud_data_apply(&(ctx->rx->config), &(ctx->data_aud));
 
 	if(!pagevis_data_apply(ctx->rx, ctx->specview, ctx->watrview, &(ctx->data_vis),
-		ctx->cb_list, ctx->hwnd, ctx->uidata->msgbuf, ctx->uidata->msgbuf_size))
+		ctx->event_visualcfg, ctx->hwnd, ctx->uidata->msgbuf, ctx->uidata->msgbuf_size))
 	{
 		status = 0;
 	}
 
 	if(!pagecrsv_data_apply(ctx->specview, &(ctx->data_crsv),
-		ctx->cb_list, ctx->hwnd))
+		ctx->event_visualcfg, ctx->hwnd))
 	{
 		status = 0;
 	}
 
 	if(!pagecrwv_data_apply(ctx->watrview, &(ctx->data_crwv),
-		ctx->cb_list, ctx->hwnd))
+		ctx->event_visualcfg, ctx->hwnd))
 	{
 		status = 0;
 	}
@@ -253,10 +253,7 @@ static void setwnd_destroy(setwnd_ctx_t *ctx)
 	}
 
 	ui_savepos(ctx->hwnd, sect, UI_POS_OFFSET, ctx->cx_frame, ctx->cy_frame);
-
-	callback_list_call(ctx->cb_list,
-		NOTIFY_WNDCLOSE, NOTIFY_WNDCLOSE_SETTINGS, ctx->hwnd);
-
+	uievent_send(ctx->event_window_close, EVENT_WNDCLOSE_SETTINGS, ctx->hwnd);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -345,7 +342,7 @@ static LRESULT CALLBACK setwnd_proc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini, callback_list_t *cb_list,
+HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
 				   rxstate_t *rx, specview_ctx_t *specview, watrview_ctx_t *watrview)
 {
 	setwnd_ctx_t *ctx;
@@ -357,13 +354,15 @@ HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini, callback_
 		return NULL;
 
 	ctx->uidata = uidata;
-	ctx->cb_list = cb_list;
 
 	ctx->ini = ini;
 	
 	ctx->rx = rx;
 	ctx->specview = specview;
 	ctx->watrview = watrview;
+
+	ctx->event_window_close = uievent_register(&(uidata->event_list), EVENT_NAME_WNDCLOSE);
+	ctx->event_visualcfg = uievent_register(&(uidata->event_list), EVENT_NAME_VISUALCFG);
 
 	/* calculate window position */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

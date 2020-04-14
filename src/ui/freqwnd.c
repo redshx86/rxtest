@@ -119,6 +119,32 @@ static void freqwnd_loaddispfreqrange(freqwnd_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
+static void freqwnd_rx_state_handler(freqwnd_ctx_t *ctx, unsigned int msg, void *data)
+{
+	switch(msg)
+	{
+	case EVENT_RX_STATE_START:
+	case EVENT_RX_STATE_STOP:
+	case EVENT_RX_STATE_SET_INPUT_FC:
+		freqwnd_loadinputcenterfreq(ctx);
+		break;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+static void freqwnd_visualcfg_handler(freqwnd_ctx_t *ctx, unsigned int msg, void *data)
+{
+	switch(msg)
+	{
+	case EVENT_VISUALCFG_FREQ_RANGE:
+		freqwnd_loaddispfreqrange(ctx);
+		break;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
 static int freqwnd_setinputcenterfreq(freqwnd_ctx_t *ctx, double fc_input)
 {
 	int res;
@@ -135,8 +161,7 @@ static int freqwnd_setinputcenterfreq(freqwnd_ctx_t *ctx, double fc_input)
 
 	if(res > 0)
 	{
-		callback_list_call(ctx->cb_list,
-			NOTIFY_RX, NOTIFY_RX_SET_INPUT_FC, NULL);
+		uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_INPUT_FC, NULL);
 	}
 	else
 	{
@@ -165,8 +190,7 @@ static int freqwnd_setdispfreqrange(freqwnd_ctx_t *ctx, double f_0, double f_1)
 
 	if(is_updated)
 	{
-		callback_list_call(ctx->cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_FREQ_RANGE, NULL);
+		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_FREQ_RANGE, NULL);
 	}
 	else
 	{
@@ -320,34 +344,6 @@ static void freqwnd_updatemarksnap(freqwnd_ctx_t *ctx)
 	{
 		ctx->fcfg->f_mark_snap = snap_value;
 		ctx->prefFMarkSnap = snap_unit;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-static void freqwnd_callback(freqwnd_ctx_t *ctx, unsigned int type, unsigned int code, void *data)
-{
-	switch(type)
-	{
-	case NOTIFY_RX:
-		switch(code)
-		{
-		case NOTIFY_RX_START:
-		case NOTIFY_RX_STOP:
-		case NOTIFY_RX_SET_INPUT_FC:
-			freqwnd_loadinputcenterfreq(ctx);
-			break;
-		}
-		break;
-
-	case NOTIFY_VISUALCFG:
-		switch(code)
-		{
-		case NOTIFY_VISUALCFG_FREQ_RANGE:
-			freqwnd_loaddispfreqrange(ctx);
-			break;
-		}
-		break;
 	}
 }
 
@@ -604,8 +600,8 @@ static int freqwnd_init(freqwnd_ctx_t *ctx)
 		ctx->fcfg->f_mark_snap, ctx->prefFMarkSnap, 3, 0);
 
 	/* subscribe to notifications */
-	callback_list_add(ctx->cb_list, ctx, freqwnd_callback,
-		(1<<NOTIFY_RX)|(1<<NOTIFY_VISUALCFG));
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, freqwnd_rx_state_handler);
+	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, freqwnd_visualcfg_handler);
 
 	return 1;
 }
@@ -614,6 +610,10 @@ static int freqwnd_init(freqwnd_ctx_t *ctx)
 
 static void freqwnd_destroy(freqwnd_ctx_t *ctx)
 {
+	/* unregister callback */
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, freqwnd_visualcfg_handler);
+	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, freqwnd_rx_state_handler);
+
 	/* apply changed values */
 	freqwnd_updatedispsnap(ctx);
 	freqwnd_updatemarksnap(ctx);
@@ -626,11 +626,7 @@ static void freqwnd_destroy(freqwnd_ctx_t *ctx)
 		UI_POS_OFFSET, ctx->cx_frame, ctx->cy_frame);
 
 	/* send destroying message */
-	callback_list_call(ctx->cb_list,
-		NOTIFY_WNDCLOSE, NOTIFY_WNDCLOSE_FREQWND, ctx->hwnd);
-
-	/* unregister callback */
-	callback_list_remove(ctx->cb_list, freqwnd_callback, 0);
+	uievent_send(ctx->event_window_close, EVENT_WNDCLOSE_FREQWND, ctx->hwnd);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -719,7 +715,7 @@ static LRESULT CALLBACK freqwnd_wndproc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM 
 
 HWND freqwnd_create(uicommon_t *uidata, ini_data_t *ini, freqcfg_t *fcfg,
 					rxstate_t *rx, specview_ctx_t *specview, watrview_ctx_t *watrview,
-					HWND hwndMain, callback_list_t *cb_list)
+					HWND hwndMain)
 {
 	freqwnd_ctx_t *ctx;
 	int win_w, win_h, win_x, win_y;
@@ -732,12 +728,15 @@ HWND freqwnd_create(uicommon_t *uidata, ini_data_t *ini, freqcfg_t *fcfg,
 	ctx->hwndMain = hwndMain;
 	ctx->uidata = uidata;
 	ctx->ini = ini;
-	ctx->cb_list = cb_list;
 
 	ctx->fcfg = fcfg;
 	ctx->rx = rx;
 	ctx->specview = specview;
 	ctx->watrview = watrview;
+
+	ctx->event_window_close = uievent_register(&(uidata->event_list), EVENT_NAME_WNDCLOSE);
+	ctx->event_rx_state = uievent_register(&(uidata->event_list), EVENT_NAME_RX_STATE);
+	ctx->event_visualcfg = uievent_register(&(uidata->event_list), EVENT_NAME_VISUALCFG);
 
 	/* init window pos */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

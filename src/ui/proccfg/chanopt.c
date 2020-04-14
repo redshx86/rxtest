@@ -221,9 +221,7 @@ static int chanopt_apply_decim(chanopt_ctx_t *ctx)
 	{
 		channelList.count = ctx->chidCount;
 		channelList.items = ctx->chidList;
-
-		callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-			NOTIFY_PROCCHAN_DECIMATION, &channelList);
+		uievent_send(ctx->event_procchan, EVENT_PROCCHAN_DECIMATION, &channelList);
 	}
 
 	return (!error);
@@ -289,9 +287,8 @@ static int chanopt_apply_dcrem(chanopt_ctx_t *ctx)
 	{
 		channelList.count = ctx->chidCount;
 		channelList.items = ctx->chidList;
-
-		callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-			NOTIFY_PROCCHAN_OUTPUTCFG, &channelList);
+		uievent_send(uievent_register(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN),
+			EVENT_PROCCHAN_OUTPUTCFG, &channelList);
 	}
 
 	return (!error);
@@ -449,7 +446,7 @@ static int chanopt_windowtitle(chanopt_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int chanopt_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwndOwner,
+int chanopt_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
 						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
@@ -463,7 +460,7 @@ int chanopt_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwnd
 	}
 
 	ctx->uidata = uidata;
-	ctx->cb_list = cb_list;
+	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
 	ctx->chidList = chidList;

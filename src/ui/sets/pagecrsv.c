@@ -86,7 +86,7 @@ void pagecrsv_data_init(pagecrsv_data_t *data, specview_cfg_t *svcfg)
 /* ---------------------------------------------------------------------------------------------- */
 
 int pagecrsv_data_apply(specview_ctx_t *specview, pagecrsv_data_t *data,
-						callback_list_t *cb_list, HWND hwndMsgbox)
+						uievent_t *event_visualcfg, HWND hwndMsgbox)
 {
 	int status = 1;
 	COLORREF cr_cur[PAGECRSV_ROW_COUNT][PAGECRSV_COL_COUNT];
@@ -125,8 +125,7 @@ int pagecrsv_data_apply(specview_ctx_t *specview, pagecrsv_data_t *data,
 		}
 
 		/* force spectrum viewer redraw */
-		callback_list_call(cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_SPECVIEW, NULL);
+		uievent_send(event_visualcfg, EVENT_VISUALCFG_SPECVIEW, NULL);
 	}
 
 	return status;

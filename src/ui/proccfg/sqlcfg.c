@@ -162,9 +162,7 @@ static int sqlcfg_apply(sqlcfg_ctx_t *ctx)
 	{
 		notifyList.count = ctx->chidCount;
 		notifyList.items = ctx->chidList;
-
-		callback_list_call(ctx->cb_list, NOTIFY_PROCCHAN,
-			NOTIFY_PROCCHAN_SQLCFG, &notifyList);
+		uievent_send(ctx->event_procchan, EVENT_PROCCHAN_SQLCFG, &notifyList);
 	}
 
 	return 1;
@@ -452,8 +450,8 @@ static int sqlcfg_windowtitle(sqlcfg_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int sqlcfg_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwndOwner,
-						   rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
+int sqlcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
+						rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
 	sqlcfg_ctx_t *ctx;
@@ -466,7 +464,7 @@ int sqlcfg_createwindow(uicommon_t *uidata, callback_list_t *cb_list, HWND hwndO
 	}
 
 	ctx->uidata = uidata;
-	ctx->cb_list = cb_list;
+	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
 	ctx->chidList = chidList;

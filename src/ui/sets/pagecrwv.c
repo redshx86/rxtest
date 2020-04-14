@@ -25,7 +25,7 @@ void pagecrwv_data_init(pagecrwv_data_t *data, watrview_cfg_t *wvcfg)
 /* ---------------------------------------------------------------------------------------------- */
 
 int pagecrwv_data_apply(watrview_ctx_t *watrview, pagecrwv_data_t *data,
-						callback_list_t *cb_list, HWND hwndMsgbox)
+						uievent_t *event_visualcfg, HWND hwndMsgbox)
 {
 	int status = 1;
 
@@ -61,8 +61,7 @@ int pagecrwv_data_apply(watrview_ctx_t *watrview, pagecrwv_data_t *data,
 		}
 
 		/* force waterfall viewer redraw */
-		callback_list_call(cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_WATRVIEW, NULL);
+		uievent_send(event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
 	}
 
 	return status;

@@ -39,7 +39,7 @@ void pagevis_data_init(pagevis_data_t *data, rxconfig_t *rxcfg,
 
 int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
 					   watrview_ctx_t *watrview, pagevis_data_t *data,
-					   callback_list_t *cb_list,
+					   uievent_t *event_visualcfg,
 					   HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size)
 {
 	int status = 1;
@@ -118,16 +118,13 @@ int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
 	
 	/* send notifications */
 	if(sv_update) {
-		callback_list_call(cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_SPECVIEW, NULL);
+		uievent_send(event_visualcfg, EVENT_VISUALCFG_SPECVIEW, NULL);
 	}
 
 	if(wv_update) {
-		callback_list_call(cb_list,
-			NOTIFY_VISUALCFG, NOTIFY_VISUALCFG_WATRVIEW, NULL);
+		uievent_send(event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
 	}
 
-	
 	return status;
 }
 

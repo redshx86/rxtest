@@ -3,45 +3,44 @@
 #pragma once
 
 #include <windows.h>
-#include "../util/callback.h"
 
 /* ---------------------------------------------------------------------------------------------- */
 
-#define NOTIFY_WNDCLOSE					0
+#define EVENT_NAME_WNDCLOSE			"window_close"
 
 enum {
-	NOTIFY_WNDCLOSE_FREQWND,
-	NOTIFY_WNDCLOSE_CHANNELMGR,
-	NOTIFY_WNDCLOSE_SETTINGS,
-	NOTIFY_WNDCLOSE_AUDCTRL
+	EVENT_WNDCLOSE_FREQWND,
+	EVENT_WNDCLOSE_CHANNELMGR,
+	EVENT_WNDCLOSE_SETTINGS,
+	EVENT_WNDCLOSE_AUDCTRL
 };
 
 /* ---------------------------------------------------------------------------------------------- */
 
-#define NOTIFY_RX						1
+#define EVENT_NAME_RX_STATE			"rx_state_change"
 
 enum {
-	NOTIFY_RX_START,
-	NOTIFY_RX_STOP,
-	NOTIFY_RX_SET_INPUT_FC,
-	NOTIFY_RX_SET_OUT_GAIN
+	EVENT_RX_STATE_START,
+	EVENT_RX_STATE_STOP,
+	EVENT_RX_STATE_SET_INPUT_FC,
+	EVENT_RX_STATE_SET_OUT_GAIN
 };
 
 /* ---------------------------------------------------------------------------------------------- */
 
-#define NOTIFY_PROCCHAN					2
+#define EVENT_NAME_PROCCHAN			"proc_state_change"
 
 enum {
-	NOTIFY_PROCCHAN_CREATE,
-	NOITFY_PROCCHAN_DELETE,
-	NOTIFY_PROCCHAN_NAME,
-	NOTIFY_PROCCHAN_FREQ,
-	NOTIFY_PROCCHAN_DECIMATION,
-	NOTIFY_PROCCHAN_FILTERCFG,
-	NOTIFY_PROCCHAN_DEMODCFG,
-	NOTIFY_PROCCHAN_SQLCFG,
-	NOTIFY_PROCCHAN_OUTPUTCFG,
-	NOTIFY_PROCCHAN_ACTIVITY,
+	EVENT_PROCCHAN_CREATE,
+	EVENT_PROCCHAN_DELETE,
+	EVENT_PROCCHAN_NAME,
+	EVENT_PROCCHAN_FREQ,
+	EVENT_PROCCHAN_DECIMATION,
+	EVENT_PROCCHAN_FILTERCFG,
+	EVENT_PROCCHAN_DEMODCFG,
+	EVENT_PROCCHAN_SQLCFG,
+	EVENT_PROCCHAN_OUTPUTCFG,
+	EVENT_PROCCHAN_ACTIVITY,
 };
 
 typedef struct notify_proc_list {
@@ -51,19 +50,20 @@ typedef struct notify_proc_list {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-#define NOTIFY_VISUALCFG			3
+#define EVENT_NAME_VISUALCFG		"visual_config"
 
 enum {
-	NOTIFY_VISUALCFG_SPECVIEW,
-	NOTIFY_VISUALCFG_WATRVIEW,
-	NOTIFY_VISUALCFG_FREQ_RANGE
+	EVENT_VISUALCFG_SPECVIEW,
+	EVENT_VISUALCFG_WATRVIEW,
+	EVENT_VISUALCFG_FREQ_RANGE
 };
 
 /* ---------------------------------------------------------------------------------------------- */
 
-#define NOTIFY_CHANMGR				4
+#define EVENT_NAME_CHANMGRCFG		"chanmgr_config"
+
 enum {
-	NOTIFY_CHANMGR_SETCONFIG
+	EVENT_CHANMGR_SETCONFIG
 };
 
 /* ---------------------------------------------------------------------------------------------- */

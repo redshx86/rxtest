@@ -110,7 +110,7 @@ void pagevis_data_init(pagevis_data_t *data, rxconfig_t *rxcfg,
 
 int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
 					   watrview_ctx_t *watrview, pagevis_data_t *data,
-					   callback_list_t *cb_list,
+					   uievent_t *event_visualcfg,
 					   HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size);
 
 /* ---------------------------------------------------------------------------------------------- */

@@ -66,11 +66,12 @@ typedef struct rxwnd_ctx {
 	/* common ui resources */
 	uicommon_t *uidata;
 
+	uievent_t *event_rx_state;
+	uievent_t *event_procchan;
+	uievent_t *event_visualcfg;
+
 	/* configuration files */
 	ini_data_t *ini, *inich;
-
-	/* global callback list */
-	callback_list_t *cb_list;
 
 	/* receiver state */
 	rxstate_t *rx;
@@ -173,7 +174,6 @@ int rxwnd_registerclass(uicommon_t *uidata);
 
 void rxwnd_unregisterclass(HINSTANCE h_inst);
 
-HWND rxwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  callback_list_t *cb_list, int n_show);
+HWND rxwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich, int n_show);
 
 /* ---------------------------------------------------------------------------------------------- */

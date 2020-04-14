@@ -764,6 +764,8 @@ int uicommon_init(uicommon_t *uidata, HINSTANCE h_inst)
 
 	memset(uidata, 0, sizeof(uicommon_t));
 
+	uievent_init(&(uidata->event_list));
+
 	keynav_init(&(uidata->keynav), h_inst);
 
 	uidata->msgbuf_size = UI_MSGBUF_SIZE;
@@ -829,6 +831,8 @@ void uicommon_free(uicommon_t *uidata)
 	free(uidata->msgbuf);
 
 	keynav_cleanup(&(uidata->keynav));
+
+	uievent_free(&(uidata->event_list));
 }
 
 /* ---------------------------------------------------------------------------------------------- */
