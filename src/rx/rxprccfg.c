@@ -12,74 +12,92 @@ TCHAR *rxproc_demod_display_name[] = {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-static void rxprocconfig_setdefaults(rxprocconfig_t *cfg, rxconfig_t *defs, TCHAR *name, double fc)
+int rxprocconfig_init(rxprocconfig_t *cfg)
 {
-	/* channel name */
-	_tcscpy(cfg->name, name);
-
-	/* oscillator section */
-	cfg->fc = fc;
-
-	/* decimator section */
-	cfg->decim_frgran = defs->proc_decim_frgran;
-	cfg->decim_mcsdf = defs->proc_decim_mcsdf;
-	cfg->decim_dff = defs->proc_decim_dff;
-	cfg->decim_as = defs->proc_decim_as;
-
-	/* filter section */
-	cfg->filter_fc = defs->proc_filter_fc;
-	cfg->filter_df = defs->proc_filter_df;
-	cfg->filter_as = defs->proc_filter_as;
-
-	/* demodulator and squelch section */
-	cfg->demod_type = RXPROC_DEMOD_FM;
-
-	memcpy(&(cfg->fmdemod), &(defs->proc_fm_def), sizeof(rxproc_fm_config_t));
-	memcpy(&(cfg->sql), &(defs->proc_sql_def), sizeof(rxsql_cfg_t));
-
-	/* output section */
-	cfg->output_gain = 0.0;
-	cfg->output_mode = SNDMIX_INPUT_CHAN_AB;
-	cfg->output_dcrem_alpha = defs->proc_dcrem_alpha;
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-int rxprocconfig_init(rxprocconfig_t *cfg, rxconfig_t *defs, TCHAR *name, double fc,
-					  ini_sect_t *loadsect)
-{
+	memset(cfg, 0, sizeof(rxprocconfig_t));
+	
 	cfg->name = malloc(RXLIM_PROC_MAXNAME * sizeof(TCHAR));
+	if(cfg->name == NULL)
+		return 0;
 
-	if(cfg->name != NULL)
-	{
-		rxprocconfig_setdefaults(cfg, defs, name, fc);
+	_tcscpy(cfg->name, _T(""));
 
-		if(loadsect != NULL) {
-			rxprocconfig_load(loadsect, cfg);
-		}
-
-		return 1;
-	}
-
-	free(cfg);
-	return 0;
+	return 1;
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void rxprocconfig_cleanup(rxprocconfig_t *cfg, ini_sect_t *savesect)
+void rxprocconfig_cleanup(rxprocconfig_t *cfg)
 {
-	if(savesect != NULL) {
-		rxprocconfig_save(savesect, cfg);
-	}
-
 	free(cfg->name);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 
+void rxprocconfig_set_defaults(rxprocconfig_t *cfg, const TCHAR *name)
+{
+	_tcscpy(cfg->name, name);
+
+	/* oscillator section */
+	cfg->fc								= 0.0;
+
+	/* decimator section */
+	cfg->decim_frgran					= 2501;
+	cfg->decim_mcsdf					= 4;
+	cfg->decim_dff						= 0.1;
+	cfg->decim_as						= 60.0;
+
+	/* filter section */
+	cfg->filter_fc						= 10000.0;
+	cfg->filter_df						= 2500.0;
+	cfg->filter_as						= 60.0;
+
+	/* demodulator and squelch section */
+	cfg->demod_type						= RXPROC_DEMOD_FM;
+	rxproc_fm_cfg_set_defaults(&(cfg->fmdemod));
+	rxsql_cfg_set_defaults(&(cfg->sql));
+
+	/* output section */
+	cfg->output_gain					= 0.0;
+	cfg->output_mode					= SNDMIX_INPUT_CHAN_AB;
+	cfg->output_dcrem_alpha				= 0.025;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+void rxprocconfig_copy(rxprocconfig_t *dst, const rxprocconfig_t *src)
+{
+	_tcscpy(dst->name, src->name);
+
+	/* oscillator section */
+	dst->fc								= src->fc;
+
+	/* decimator section */
+	dst->decim_frgran					= src->decim_frgran;
+	dst->decim_mcsdf					= src->decim_mcsdf;
+	dst->decim_dff						= src->decim_dff;
+	dst->decim_as						= src->decim_as;
+
+	/* filter section */
+	dst->filter_fc						= src->filter_fc;
+	dst->filter_df						= src->filter_df;
+	dst->filter_as						= src->filter_as;
+
+	/* demodulator and squelch section */
+	dst->demod_type						= src->demod_type;
+	memcpy(&(dst->fmdemod), &(src->fmdemod), sizeof(src->fmdemod));
+	memcpy(&(dst->sql), &(src->sql), sizeof(src->sql));
+
+	/* output section */
+	dst->output_gain					= src->output_gain;
+	dst->output_mode					= src->output_mode;
+	dst->output_dcrem_alpha				= src->output_dcrem_alpha;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* load processing channel config */
-void rxprocconfig_load(ini_sect_t *sect, rxprocconfig_t *cfg)
+void rxprocconfig_load(rxprocconfig_t *cfg, ini_sect_t *sect)
 {
 	/* channel name */
 	ini_copys(sect, _T("name"), cfg->name, RXLIM_PROC_MAXNAME);
@@ -123,7 +141,7 @@ void rxprocconfig_load(ini_sect_t *sect, rxprocconfig_t *cfg)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* save processing channel config */
-void rxprocconfig_save(ini_sect_t *sect, rxprocconfig_t *cfg)
+void rxprocconfig_save(ini_sect_t *sect, const rxprocconfig_t *cfg)
 {
 	/* channel name */
 	ini_set(sect, _T("name"), cfg->name);
@@ -145,8 +163,8 @@ void rxprocconfig_save(ini_sect_t *sect, rxprocconfig_t *cfg)
 	/* demodulator section */
 	ini_setu(sect, _T("demod_type"), cfg->demod_type);
 
-	rxproc_fm_cfg_save(&(cfg->fmdemod), sect);
-	rxsql_cfg_save(&(cfg->sql), sect);
+	rxproc_fm_cfg_save(sect, &(cfg->fmdemod));
+	rxsql_cfg_save(sect, &(cfg->sql));
 
 	/* output section  */
 	ini_setf(sect, _T("output_gain"), 6, cfg->output_gain);

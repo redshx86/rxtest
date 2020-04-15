@@ -104,21 +104,17 @@ static void rx_proc_unreg(rxstate_t *rx, rxproc_t *proc)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* create new processing channel
- *	name : processing channel name,
- *	fc : processing channel center frequency, Hz,
- *	loadsect : channel config ini section. */
-rxproc_t *rx_proc_create(rxstate_t *rx, TCHAR *name, double fc, ini_sect_t *loadsect,
-						 TCHAR *errbuf, size_t errbufsize)
+ *	cfg_init: init configuration. */
+rxproc_t *rx_proc_create(rxstate_t *rx, rxprocconfig_t *cfg_init, TCHAR *errbuf, size_t errbufsize)
 {
 	rxproc_t *proc;
 
 	_tcscpy(errbuf, _T(""));
 
 	/* initialize channel */
-	if( (proc = rxproc_init(rx, name, fc, &(rx->config), loadsect,
-		rx->proc_act_cb, rx->proc_act_ctx, errbuf, errbufsize)) != NULL ) 
+	if( (proc = rxproc_init(rx, cfg_init,
+			rx->proc_act_cb, rx->proc_act_ctx, errbuf, errbufsize)) != NULL ) 
 	{
-
 		/* assign channel id */
 		proc->chid = rx->proc_nextchid++;
 
@@ -136,7 +132,7 @@ rxproc_t *rx_proc_create(rxstate_t *rx, TCHAR *name, double fc, ini_sect_t *load
 		/* unregister channel */
 		rx_proc_unreg(rx, proc);
 
-		rxproc_clenaup(proc, NULL);
+		rxproc_clenaup(proc);
 	}
 
 	return NULL;
@@ -144,9 +140,8 @@ rxproc_t *rx_proc_create(rxstate_t *rx, TCHAR *name, double fc, ini_sect_t *load
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* delete processing channel
- *	savesect : channel config ini section. */
-void rx_proc_delete(rxproc_t *proc, ini_sect_t *savesect)
+/* delete processing channel */
+void rx_proc_delete(rxproc_t *proc)
 {
 	rxstate_t *rx = proc->rx;
 
@@ -157,7 +152,7 @@ void rx_proc_delete(rxproc_t *proc, ini_sect_t *savesect)
 	rx_proc_unreg(rx, proc);
 
 	/* destroy channel */
-	rxproc_clenaup(proc, savesect);
+	rxproc_clenaup(proc);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -768,13 +763,64 @@ void rx_input_mod_unset(rxstate_t *rx, ini_data_t *ini)
 
 /* ---------------------------------------------------------------------------------------------- */
 
+int rx_set_config(rxstate_t *rx, const rxconfig_t *cfg_new, TCHAR *errbuf, size_t errbufsize)
+{
+	int success = 1;
+
+	/* input headers */
+	rx->config.input_hdr_count					= cfg_new->input_hdr_count;
+	rx->config.input_hdr_ms						= cfg_new->input_hdr_ms;
+
+	/* processing channel buffers */
+	rx->config.proc_buf_len_ms					= cfg_new->proc_buf_len_ms;
+	rx->config.proc_in_whyst_ms					= cfg_new->proc_in_whyst_ms;
+	rx->config.proc_out_rhyst_ms				= cfg_new->proc_out_rhyst_ms;
+	rx->config.proc_workbuf_ms					= cfg_new->proc_workbuf_ms;
+	
+	/* processing channel baseband sampling frequency */
+	rx->config.base_fsmin						= cfg_new->base_fsmin;
+	rx->config.base_fsmax						= cfg_new->base_fsmax;
+
+	/* audio output */
+	rx->config.output_static_gain				= cfg_new->output_static_gain;
+	rx->config.output_resamp_df					= cfg_new->output_resamp_df;
+	rx->config.output_resamp_as					= cfg_new->output_resamp_as;
+	rx->config.output_lim_thres					= cfg_new->output_lim_thres;
+	rx->config.output_lim_range					= cfg_new->output_lim_range;
+	rx->config.output_device_id					= cfg_new->output_device_id;
+	rx->config.output_fs						= cfg_new->output_fs;
+	rx->config.output_bps						= cfg_new->output_bps;
+	rx->config.output_hdr_cnt					= cfg_new->output_hdr_cnt;
+	rx->config.output_hdr_ms					= cfg_new->output_hdr_ms;
+
+	/* spectrum analyzer */
+	if( (cfg_new->spect_ups_req != rx->config.spect_ups_req) ||
+		(cfg_new->spect_length != rx->config.spect_length) ||
+		(cfg_new->spect_bufcount != rx->config.spect_bufcount) ||
+		(cfg_new->spect_wndtype != rx->config.spect_wndtype) ||
+		(fabs(cfg_new->spect_wndarg - rx->config.spect_wndarg) >= 1e-6) ||
+		(fabs(cfg_new->spect_magref - rx->config.spect_magref) >= 1e-6) )
+	{
+		if(!rx_set_spect_params(rx, cfg_new->spect_ups_req, cfg_new->spect_length,
+			cfg_new->spect_bufcount, cfg_new->spect_wndtype, cfg_new->spect_wndarg,
+			cfg_new->spect_magref, errbuf, errbufsize))
+		{
+			success = 0;
+		}
+	}
+
+	return success;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* initialize receiver and input module list, load config.
- *	ini : main ini file data,
+ *	cfg_init : init configuration,
  *	spect_cb : spectrum analyzer output callback function,
  *	spect_ctx : spectrum analyzer output callback context,
  *	proc_act_cb : processing channel activity status callback,
  *	proc_act_ctx : processing channel activity status context. */
-rxstate_t *rx_init(ini_data_t *ini,
+rxstate_t *rx_init(const rxconfig_t *cfg_init,
 				   rxspect_callback_t spect_cb, void *spect_cb_param,
 				   rxproc_activity_callback_t proc_act_cb, void *proc_act_ctx,
 				   TCHAR *errbuf, size_t errbufsize)
@@ -804,7 +850,7 @@ rxstate_t *rx_init(ini_data_t *ini,
 			if(rxconfig_init(&(rx->config)))
 			{
 				/* load config */
-				rxconfig_load(&(rx->config), ini);
+				rxconfig_copy(&(rx->config), cfg_init);
 
 				/* load input module list */
 				if(!input_module_list_load(&(rx->input_mod_list))) {
@@ -843,8 +889,7 @@ rxstate_t *rx_init(ini_data_t *ini,
 /* ---------------------------------------------------------------------------------------------- */
 
 /* stop receiver and processing channels, unset input module,
- * cleanup receiver, channels, input module list, save config.
- *	ini : main ini file data. */
+ * cleanup receiver, channels, input module list. */
 void rx_cleanup(rxstate_t *rx, ini_data_t *ini)
 {
 	rxproc_t *proc, *proc_next;
@@ -857,7 +902,7 @@ void rx_cleanup(rxstate_t *rx, ini_data_t *ini)
 		/* delete processing channels */
 		for(proc = rx->proc_first; proc != NULL; proc = proc_next) {
 			proc_next = proc->proc_next;
-			rx_proc_delete(proc, NULL);
+			rx_proc_delete(proc);
 		}
 
 		/* unload input module */
@@ -867,7 +912,6 @@ void rx_cleanup(rxstate_t *rx, ini_data_t *ini)
 		input_module_list_cleanup(&(rx->input_mod_list));
 
 		/* save and free config */
-		rxconfig_save(&(rx->config), ini);
 		rxconfig_cleanup(&(rx->config));
 
 		/* cleanup */
@@ -889,29 +933,38 @@ void rx_cleanup(rxstate_t *rx, ini_data_t *ini)
 void rx_proc_group_load(rxstate_t *rx, ini_data_t *ini, TCHAR *groupname,
 						TCHAR *errbuf, size_t errbufsize)
 {
-	TCHAR *sectname;
-	TCHAR defprocname[32];
+	rxprocconfig_t cfg;
+	TCHAR *sectname, proc_name[32];
 	unsigned int i;
 	ini_sect_t *sect;
 
-	/* alloc section name buffer */
-	if( (sectname = malloc( (_tcslen(groupname) + 32) * sizeof(TCHAR) )) != NULL )
+	if(rxprocconfig_init(&cfg))
 	{
-		i = 0; /* current channel index */
-
-		for( ; ; )
+		/* alloc section name buffer */
+		if( (sectname = malloc( (_tcslen(groupname) + 32) * sizeof(TCHAR) )) != NULL )
 		{
-			/* get next section */
-			_stprintf(sectname, _T("proc%u_%s"), i++, groupname);
-			if( (sect = ini_sect_get(ini, sectname, 0)) == NULL )
-				break;
+			i = 0; /* current channel index */
 
-			/* create channel if section found */
-			_stprintf(defprocname, _T("noname%u"), rx->proc_nextchid);
-			rx_proc_create(rx, defprocname, 0.0, sect, errbuf, errbufsize);
+			for( ; ; )
+			{
+				/* get next section */
+				_stprintf(sectname, _T("proc%u_%s"), i++, groupname);
+				if( (sect = ini_sect_get(ini, sectname, 0)) == NULL )
+					break;
+
+				/* load channel data */
+				_stprintf(proc_name, _T("noname%u"), rx->proc_nextchid);
+				rxprocconfig_set_defaults(&cfg, proc_name);
+				rxprocconfig_load(&cfg, sect);
+
+				/* create channel */
+				rx_proc_create(rx, &cfg, errbuf, errbufsize);
+			}
+
+			free(sectname);
 		}
 
-		free(sectname);
+		rxprocconfig_cleanup(&cfg);
 	}
 }
 

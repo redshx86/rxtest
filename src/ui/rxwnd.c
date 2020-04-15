@@ -104,7 +104,7 @@ static void rxwnd_cmd_showchannelmgr(rxwnd_ctx_t *ctx)
 		(!IsWindow(ctx->hwndChannelMgr)) )
 	{
 		if( (ctx->hwndChannelMgr = cmwnd_create(ctx->uidata, ctx->ini, ctx->inich,
-			ctx->rx, ctx->hwnd)) == NULL )
+			ctx->rx, &(ctx->procdefcfg), ctx->hwnd)) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create channel manager window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -143,7 +143,7 @@ static void rxwnd_cmd_showsettingswnd(rxwnd_ctx_t *ctx)
 	{
 		if( (ctx->hwndSettings = setwnd_create(
 			ctx->uidata, ctx->hwnd, ctx->ini,
-			ctx->rx, &(ctx->svcfg), &(ctx->wvcfg))) == NULL )
+			&(ctx->rxcfg), &(ctx->svcfg), &(ctx->wvcfg))) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create settings window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -1471,6 +1471,7 @@ static void rxwnd_handle_set_cfg(rxwnd_ctx_t *ctx)
 {
 	int sv_update, wv_update;
 
+	rx_set_config(ctx->rx, &(ctx->rxcfg), ctx->uidata->msgbuf, ctx->uidata->msgbuf_size);
 	specview_cfg_set(ctx->specview, &(ctx->svcfg), &sv_update);
 	watrview_cfg_set(ctx->watrview, &(ctx->wvcfg), &wv_update);
 	rxwnd_visualupdate(ctx, sv_update, wv_update);
@@ -1671,11 +1672,20 @@ static int rxwnd_handle_init(rxwnd_ctx_t *ctx)
 	/* show cursor */
 	rxwnd_updatecursor(ctx);
 
-	/* load frequency config */
-	freqcfg_init(&(ctx->fcfg), ctx->ini);
+	/* load configuration */
+	freqcfg_set_defaults(&(ctx->fcfg));
+	freqcfg_load(&(ctx->fcfg), ctx->ini);
 
 	/* rx init */
-	if( (ctx->rx = rx_init(ctx->ini, rxwnd_spectrumframe, ctx,
+	rxconfig_init(&(ctx->rxcfg));
+	rxconfig_set_defaults(&(ctx->rxcfg));
+	rxconfig_load(&(ctx->rxcfg), ctx->ini);
+
+	rxprocconfig_init(&(ctx->procdefcfg));
+	rxprocconfig_set_defaults(&(ctx->procdefcfg), _T("default"));
+	rxprocconfig_load(&(ctx->procdefcfg), ini_sect_get(ctx->ini, _T("proc_defaults"), 0));
+
+	if( (ctx->rx = rx_init(&(ctx->rxcfg), rxwnd_spectrumframe, ctx,
 		rxwnd_rxproc_act_callback, ctx,
 		ctx->uidata->msgbuf, ctx->uidata->msgbuf_size)) == NULL )
 	{
@@ -1746,11 +1756,17 @@ static void rxwnd_handle_destroy(rxwnd_ctx_t *ctx)
 		ctx->rx = NULL;
 	}
 
+	rxconfig_save(ctx->ini, &(ctx->rxcfg));
+	rxconfig_cleanup(&(ctx->rxcfg));
+
+	rxprocconfig_save(ini_sect_get(ctx->ini, _T("proc_defaults"), 1), &(ctx->procdefcfg));
+	rxprocconfig_cleanup(&(ctx->procdefcfg));
+
 	/* visualizer cleanup */
 	rxwnd_visualcleanup(ctx);
 
-	/* save frequency config */
-	freqcfg_save(&(ctx->fcfg), ctx->ini);
+	/* save config */
+	freqcfg_save(ctx->ini, &(ctx->fcfg));
 
 	/* save window size */
 	ui_savepos(ctx->hwnd, ini_sect_get(ctx->ini, _T("window"), 1),

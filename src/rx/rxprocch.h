@@ -131,20 +131,16 @@ typedef struct rxproc {
 /* ---------------------------------------------------------------------------------------------- */
 
 /* initialize new processing channel
- *	name : channel name,
- *	fc : channel center frequency, Hz,
- *	config : global configuration for defaults,
- *	loadsect : ini section to load configuration,
+ *	cfg_init : configuration to initialize,
  *	act_cb : activity status callback function,
  *	act_ctx : activity status callback context. */
-rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
-					  rxconfig_t *config, ini_sect_t *loadsect,
+rxproc_t *rxproc_init(struct rxstate *rx,
+					  const rxprocconfig_t *cfg_init,
 					  rxproc_activity_callback_t act_cb, void *act_ctx,
 					  TCHAR *errbuf, size_t errbufsize);
 
-/* free processing channel
- *	savesect : ini section to save configuration to. */
-void rxproc_clenaup(rxproc_t *proc, ini_sect_t *savesect);
+/* free processing channel */
+void rxproc_clenaup(rxproc_t *proc);
 
 /* ---------------------------------------------------------------------------------------------- */
 

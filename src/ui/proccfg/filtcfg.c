@@ -63,9 +63,9 @@ static int filtcfg_apply(filtcfg_ctx_t *ctx)
 	/* save default values */
 	if(Button_GetCheck(ctx->hwndBtnSaveDef) & BST_CHECKED)
 	{
-		if(!fc_keep) ctx->rx->config.proc_filter_fc = fc;
-		if(!df_keep) ctx->rx->config.proc_filter_df = df;
-		if(!as_keep) ctx->rx->config.proc_filter_as = as;
+		if(!fc_keep) ctx->procdefcfg->filter_fc = fc;
+		if(!df_keep) ctx->procdefcfg->filter_df = df;
+		if(!as_keep) ctx->procdefcfg->filter_as = as;
 
 		Button_SetCheck(ctx->hwndBtnSaveDef, BST_UNCHECKED);
 	}
@@ -310,7 +310,8 @@ static int filtcfg_windowtitle(filtcfg_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 int filtcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
+						 rxstate_t *rx, rxprocconfig_t *procdefcfg,
+						 unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
 	filtcfg_ctx_t *ctx;
@@ -326,6 +327,7 @@ int filtcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwn
 	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
+	ctx->procdefcfg = procdefcfg;
 	ctx->chidList = chidList;
 	ctx->chidCount = chidCount;
 

@@ -19,6 +19,7 @@ typedef struct filtcfg_ctx {
 
 	/* receiver state */
 	rxstate_t *rx;
+	rxprocconfig_t *procdefcfg;
 
 	/* affected channel list */
 	unsigned int *chidList;
@@ -51,7 +52,8 @@ typedef struct filtcfg_ctx {
 /* ---------------------------------------------------------------------------------------------- */
 
 int filtcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y);
+						 rxstate_t *rx, rxprocconfig_t *procdefcfg,
+						 unsigned int *chidList, int chidCount, int x, int y);
 
 int filtcfg_registerclass(uicommon_t *uidata);
 void filtcfg_unregisterclass(HINSTANCE h_inst);

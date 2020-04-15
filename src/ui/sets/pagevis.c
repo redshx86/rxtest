@@ -37,27 +37,16 @@ void pagevis_data_init(pagevis_data_t *data, rxconfig_t *rxcfg,
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int pagevis_data_apply(rxstate_t *rx, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
-					   pagevis_data_t *data, HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size)
+void pagevis_data_apply(rxconfig_t *rxcfg, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
+						pagevis_data_t *data)
 {
-	int status = 1;
-
 	/* Update spectrum analyzer configuration */
-	if( (data->spect_ups_req != (int)(rx->config.spect_ups_req)) ||
-		(data->spect_length != (int)(rx->config.spect_length)) ||
-		(data->spect_bufcount != (int)(rx->config.spect_bufcount)) ||
-		(data->spect_wndtype != rx->config.spect_wndtype) ||
-		(fabs(data->spect_wndarg - rx->config.spect_wndarg) >= 1e-6) ||
-		(fabs(data->spect_magref - rx->config.spect_magref) >= 1e-6) )
-	{
-		if( ! rx_set_spect_params(rx, data->spect_ups_req, data->spect_length,
-			data->spect_bufcount, data->spect_wndtype, data->spect_wndarg,
-			data->spect_magref, msgbuf, msgbuf_size) )
-		{
-			MessageBox(hwndMsgbox, msgbuf, ui_title, MB_ICONEXCLAMATION|MB_OK);
-			status = 0;
-		}
-	}
+	rxcfg->spect_ups_req = data->spect_ups_req;
+	rxcfg->spect_length = data->spect_length;
+	rxcfg->spect_bufcount = data->spect_bufcount;
+	rxcfg->spect_wndtype = data->spect_wndtype;
+	rxcfg->spect_wndarg = data->spect_wndarg;
+	rxcfg->spect_magref = data->spect_magref;
 
 	/* Update spectrum viewer configuration */
 	specviewcfg->m_0 = data->sv_m_0;
@@ -70,8 +59,6 @@ int pagevis_data_apply(rxstate_t *rx, specview_cfg_t *specviewcfg, watrview_cfg_
 	watrviewcfg->framediv = data->wv_framediv;
 	watrviewcfg->chain_max_len = data->wv_chain_max_len;
 	watrviewcfg->seg_len = data->wv_seg_len;
-
-	return status;
 }
 
 /* ---------------------------------------------------------------------------------------------- */

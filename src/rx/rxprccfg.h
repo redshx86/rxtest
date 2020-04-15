@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "rxconfig.h"
+#include "rxlimits.h"
 #include "../audio/sndmix.h"
 #include "rx_fm.h"
 #include "rxsql.h"
@@ -55,15 +55,14 @@ typedef struct rxprocconfig {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int rxprocconfig_init(rxprocconfig_t *cfg, rxconfig_t *defs, TCHAR *name, double fc,
-					  ini_sect_t *loadsect);
+int rxprocconfig_init(rxprocconfig_t *cfg);
+void rxprocconfig_cleanup(rxprocconfig_t *cfg);
 
-void rxprocconfig_cleanup(rxprocconfig_t *cfg, ini_sect_t *savesect);
+void rxprocconfig_set_defaults(rxprocconfig_t *cfg, const TCHAR *name);
 
-/* ---------------------------------------------------------------------------------------------- */
+void rxprocconfig_copy(rxprocconfig_t *dst, const rxprocconfig_t *src);
 
-void rxprocconfig_load(ini_sect_t *sect, rxprocconfig_t *cfg);
-
-void rxprocconfig_save(ini_sect_t *sect, rxprocconfig_t *cfg);
+void rxprocconfig_load(rxprocconfig_t *cfg, ini_sect_t *sect);
+void rxprocconfig_save(ini_sect_t *sect, const rxprocconfig_t *cfg);
 
 /* ---------------------------------------------------------------------------------------------- */

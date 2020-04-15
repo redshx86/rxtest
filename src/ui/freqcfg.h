@@ -19,7 +19,8 @@ typedef struct freqcfg {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void freqcfg_init(freqcfg_t *fcfg, ini_data_t *ini);
-void freqcfg_save(freqcfg_t *fcfg, ini_data_t *ini);
+void freqcfg_set_defaults(freqcfg_t *fcfg);
+void freqcfg_load(freqcfg_t *fcfg, ini_data_t *ini);
+void freqcfg_save(ini_data_t *ini, const freqcfg_t *fcfg);
 
 /* ---------------------------------------------------------------------------------------------- */

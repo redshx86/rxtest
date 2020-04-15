@@ -33,27 +33,9 @@ typedef struct rxconfig {
 	unsigned int base_fsmin;				/* minimum baseband frequency, Hz */
 	unsigned int base_fsmax;				/* maximum baseband frequency, Hz */
 
-	/* processing channel decimator section defaults */
-	unsigned int proc_decim_frgran;			/* frequency response granularity, samples */
-	unsigned int proc_decim_mcsdf;			/* minimum compensation stage downsampling factor */
-	double proc_decim_dff;					/* fractional transition bandwidth */
-	double proc_decim_as;					/* stopband attenuation */
-
-	/* processing channel filter section defaults */
-	double proc_filter_fc;					/* default cutoff frequency, Hz */
-	double proc_filter_df;					/* default transition bandwidth, Hz */
-	double proc_filter_as;					/* default stopband attenuation, dB */
-
-	/* processing channel output section defaults */
-	double proc_dcrem_alpha;				/* DC remover filter param */
-
 	/* processing channel level meters */
 	size_t proc_level_num_points;			/* level meter buffer length */
 	double proc_level_update_int;			/* level meter update interval */
-
-	/* demodulator and squelch defaults */
-	rxproc_fm_config_t proc_fm_def;			/* FM demodulator defaults */
-	rxsql_cfg_t proc_sql_def;				/* squelch defaults */
 
 	/* audio output */
 	double output_static_gain;				/* static gain, dB */
@@ -68,7 +50,7 @@ typedef struct rxconfig {
 	unsigned int output_bps;				/* bits per sample */
 	size_t output_levelmtr_num_points;		/* level meter point count */
 	double output_levelmtr_tick_interval;	/* level meter point interval */
-	double output_gain;					/* output volume, dB */
+	double output_gain;						/* output volume, dB */
 
 	/* spectrum analyzer */
 	unsigned int spect_ups_req;				/* required refresh rate */
@@ -82,10 +64,14 @@ typedef struct rxconfig {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int rxconfig_init(rxconfig_t *p);
-void rxconfig_cleanup(rxconfig_t *p);
+int rxconfig_init(rxconfig_t *cfg);
+void rxconfig_cleanup(rxconfig_t *cfg);
 
-void rxconfig_load(rxconfig_t *p, ini_data_t *ini);
-void rxconfig_save(rxconfig_t *p, ini_data_t *ini);
+void rxconfig_set_defaults(rxconfig_t *cfg);
+
+void rxconfig_copy(rxconfig_t *dst, const rxconfig_t *src);
+
+void rxconfig_load(rxconfig_t *cfg, ini_data_t *ini);
+void rxconfig_save(ini_data_t *ini, const rxconfig_t *cfg);
 
 /* ---------------------------------------------------------------------------------------------- */

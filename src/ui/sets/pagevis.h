@@ -108,7 +108,7 @@ int pagevis_save(pagevis_data_t *data, HWND hwndPage);
 void pagevis_data_init(pagevis_data_t *data,
 					   rxconfig_t *rxcfg, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg);
 
-int pagevis_data_apply(rxstate_t *rx, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
-					   pagevis_data_t *data, HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size);
+void pagevis_data_apply(rxconfig_t *rxcfg, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
+						pagevis_data_t *data);
 
 /* ---------------------------------------------------------------------------------------------- */

@@ -4,7 +4,7 @@
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void rxproc_fm_cfg_reset(rxproc_fm_config_t *cfg)
+void rxproc_fm_cfg_set_defaults(rxproc_fm_config_t *cfg)
 {
 	cfg->df = 12500.0;
 }
@@ -18,7 +18,7 @@ void rxproc_fm_cfg_load(rxproc_fm_config_t *cfg, ini_sect_t *sect)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void rxproc_fm_cfg_save(rxproc_fm_config_t *cfg, ini_sect_t *sect)
+void rxproc_fm_cfg_save(ini_sect_t *sect, const rxproc_fm_config_t *cfg)
 {
 	ini_setf(sect, _T("fm_df"), 6, cfg->df);
 }

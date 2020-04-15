@@ -88,20 +88,23 @@ typedef struct rxstate {
 /* ---------------------------------------------------------------------------------------------- */
 
 /* initialize receiver and input module list, load config.
- *	ini : main ini file data,
+ *	cfg_init : init configuration,
  *	spect_cb : spectrum analyzer output callback function,
  *	spect_ctx : spectrum analyzer output callback context,
  *	proc_act_cb : processing channel activity status callback,
  *	proc_act_ctx : processing channel activity status context. */
-rxstate_t *rx_init(ini_data_t *ini,
+rxstate_t *rx_init(const rxconfig_t *cfg_init,
 				   rxspect_callback_t spect_cb, void *spect_cb_param,
 				   rxproc_activity_callback_t proc_act_cb, void *proc_act_ctx,
 				   TCHAR *errbuf, size_t errbufsize);
 
 /* stop receiver and processing channels, unset input module,
- * cleanup receiver, channels, input module list, save config.
- *	ini : main ini file data. */
+ * cleanup receiver, channels, input module list. */
 void rx_cleanup(rxstate_t *rx, ini_data_t *ini);
+
+/* ---------------------------------------------------------------------------------------------- */
+
+int rx_set_config(rxstate_t *rx, const rxconfig_t *cfg_new, TCHAR *errbuf, size_t errbufsize);
 
 /* ---------------------------------------------------------------------------------------------- */
 
@@ -136,8 +139,8 @@ int rx_set_input_fc(rxstate_t *rx, double *fcp, TCHAR *errbuf, size_t errbufsize
  *	wndtype : window type to use,
  *	wndarg : window parameter,
  *	magref : reference magnitude (0 dB), linear. */
-int rx_set_spect_params(rxstate_t *rx, unsigned int ups_req, size_t length, size_t bufcount,
-						int wndtype, double wndarg, double magref, TCHAR *errbuf, size_t errbufsize);
+//int rx_set_spect_params(rxstate_t *rx, unsigned int ups_req, size_t length, size_t bufcount,
+//						int wndtype, double wndarg, double magref, TCHAR *errbuf, size_t errbufsize);
 
 /* set output gain
  *	gain : new output gain, dB. */
@@ -146,15 +149,12 @@ int rx_set_output_gain(rxstate_t *rx, double gain, TCHAR *errbuf, size_t errbufs
 /* ---------------------------------------------------------------------------------------------- */
 
 /* create new processing channel
- *	name : processing channel name,
- *	fc : processing channel center frequency, Hz,
- *	loadsect : channel config ini section. */
-rxproc_t *rx_proc_create(rxstate_t *rx, TCHAR *name, double fc, ini_sect_t *loadsect,
-						 TCHAR *errbuf, size_t errbufsize);
+ *	cfg_init: init configuration. */
+rxproc_t *rx_proc_create(rxstate_t *rx, rxprocconfig_t *cfg_init, TCHAR *errbuf, size_t errbufsize);
 
 /* delete processing channel
  *	savesect : channel config ini section. */
-void rx_proc_delete(rxproc_t *proc, ini_sect_t *savesect);
+void rx_proc_delete(rxproc_t *proc);
 
 /* get number of processing channels */
 int rx_proc_count(rxstate_t *rx);

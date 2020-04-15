@@ -19,6 +19,7 @@ typedef struct fmcfg_ctx {
 
 	/* receiver state */
 	rxstate_t *rx;
+	rxprocconfig_t *procdefcfg;
 
 	/* affected channel list */
 	unsigned int *chidList;
@@ -47,7 +48,8 @@ typedef struct fmcfg_ctx {
 /* ---------------------------------------------------------------------------------------------- */
 
 int fmcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-					   rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y);
+					   rxstate_t *rx, rxprocconfig_t *procdefcfg,
+					   unsigned int *chidList, int chidCount, int x, int y);
 
 int fmcfg_registerclass(uicommon_t *uidata);
 void fmcfg_unregisterclass(HINSTANCE h_inst);

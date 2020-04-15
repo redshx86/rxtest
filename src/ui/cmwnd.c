@@ -924,7 +924,7 @@ static void cmwnd_cl_rowctls_cmd_showchanoptions(cmwnd_ctx_t *ctx, unsigned int 
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
 		chanopt_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -941,7 +941,7 @@ static void cmwnd_cl_rowctls_cmd_showfilterconfig(cmwnd_ctx_t *ctx, unsigned int
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
 		filtcfg_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -957,7 +957,7 @@ static void cmdwnd_showdemodconfig(cmwnd_ctx_t *ctx, rxproc_demodtype_t type,
 	{
 	case RXPROC_DEMOD_FM:
 		fmcfg_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, chidcount, x, y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, chidcount, x, y);
 		break;
 
 	default:
@@ -1003,7 +1003,7 @@ static void cmwnd_cl_rowctls_cmd_showsqlconfig(cmwnd_ctx_t *ctx, unsigned int ch
 		GetCursorPos(&pt);
 		chidlist[0] = chid;
 		sqlcfg_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, 1, pt.x, pt.y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, 1, pt.x, pt.y);
 	}
 }
 
@@ -1623,17 +1623,18 @@ static int cmwnd_insertchannel(cmwnd_ctx_t *ctx)
 	/* close current editing control if one */
 	cmwnd_cl_edit_end(ctx, 0);
 
-	/* format channel name */
-	_stprintf(ctx->uidata->databuf, _T("new %u"), ctx->rx->proc_nextchid);
-
 	/* create new channel */
-	if( (proc = rx_proc_create(ctx->rx, ctx->uidata->databuf, 0.0, NULL,
+	if( (proc = rx_proc_create(ctx->rx, ctx->procdefcfg,
 		ctx->uidata->msgbuf, ctx->uidata->msgbuf_size)) == NULL )
 	{
 		MessageBox(ctx->hwnd, ctx->uidata->msgbuf, ui_title, MB_ICONEXCLAMATION|MB_OK);
 	}
 	else
 	{
+		/* set channel name */
+		_stprintf(ctx->uidata->databuf, _T("new %u"), ctx->rx->proc_nextchid);
+		rxproc_set_name(proc, ctx->uidata->databuf);
+
 		/* broadcast notification */
 		cmwnd_chanevent_notifysingle(ctx, EVENT_PROCCHAN_CREATE, proc->chid);
 
@@ -1666,7 +1667,7 @@ static void cmwnd_deletechannels(cmwnd_ctx_t *ctx, int *rowlist, int count)
 				cmwnd_chanevent_addchan(ctx, proc->chid);
 
 				/* delete channel */
-				rx_proc_delete(proc, NULL);
+				rx_proc_delete(proc);
 			}
 		}
 
@@ -2023,7 +2024,7 @@ static void cmwnd_showselectedchanoptions(cmwnd_ctx_t *ctx, POINT *ppt)
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
 		chanopt_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -2045,7 +2046,7 @@ static void cmwnd_showselectedchanfilterconfig(cmwnd_ctx_t *ctx, POINT *ppt)
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
 		filtcfg_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -2113,7 +2114,7 @@ static void cmwnd_showselectedchansqlconfig(cmwnd_ctx_t *ctx, POINT *ppt)
 	if(cmwnd_cl_getselectedrowchids(ctx, &chidlist, &chidcount))
 	{
 		sqlcfg_createwindow(ctx->uidata, ctx->event_procchan,
-			ctx->hwnd, ctx->rx, chidlist, chidcount, ppt->x, ppt->y);
+			ctx->hwnd, ctx->rx, ctx->procdefcfg, chidlist, chidcount, ppt->x, ppt->y);
 	}
 }
 
@@ -3370,7 +3371,7 @@ static LRESULT CALLBACK cmwnd_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 /* Create channel manager window */
 
 HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  rxstate_t *rx, HWND hwndMain)
+				  rxstate_t *rx, rxprocconfig_t *procdefcfg, HWND hwndMain)
 {
 	cmwnd_ctx_t *ctx;
 	int winw, winh, xpos, ypos;
@@ -3389,6 +3390,7 @@ HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
 	ctx->ini = ini;
 	ctx->inich = inich;
 	ctx->rx = rx;
+	ctx->procdefcfg = procdefcfg;
 
 	/* register events */
 	ctx->event_procchan = uievent_register(&(uidata->event_list), EVENT_NAME_PROCCHAN);

@@ -72,13 +72,15 @@ typedef struct rxwnd_ctx {
 	/* configuration files */
 	ini_data_t *ini, *inich;
 
-	/* receiver state */
-	rxstate_t *rx;
-
 	/* configuration */
 	freqcfg_t fcfg;
+	rxconfig_t rxcfg;
+	rxprocconfig_t procdefcfg;
 	specview_cfg_t svcfg;
 	watrview_cfg_t wvcfg;
+
+	/* receiver state */
+	rxstate_t *rx;
 
 	/* current cursor */
 	HCURSOR hcur_set;

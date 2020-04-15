@@ -39,7 +39,7 @@ static int fmcfg_apply(fmcfg_ctx_t *ctx)
 
 	if(Button_GetCheck(ctx->hwndBtnSaveDef) & BST_CHECKED)
 	{
-		if(!df_keep) ctx->rx->config.proc_fm_def.df = df;
+		if(!df_keep) ctx->procdefcfg->fmdemod.df = df;
 
 		Button_SetCheck(ctx->hwndBtnSaveDef, BST_UNCHECKED);
 	}
@@ -239,7 +239,8 @@ static int fmcfg_windowtitle(fmcfg_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 int fmcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-					   rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
+					   rxstate_t *rx, rxprocconfig_t *procdefcfg,
+					   unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
 	fmcfg_ctx_t *ctx;
@@ -255,6 +256,7 @@ int fmcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndO
 	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
+	ctx->procdefcfg = procdefcfg;
 	ctx->chidList = chidList;
 	ctx->chidCount = chidCount;
 

@@ -48,7 +48,7 @@ typedef struct setwnd_ctx {
 
 	ini_data_t *ini;
 
-	rxstate_t *rx;
+	rxconfig_t *rxcfg;
 	specview_cfg_t *svcfg;
 	watrview_cfg_t *wvcfg;
 
@@ -87,7 +87,7 @@ typedef struct setwnd_ctx {
 /* ---------------------------------------------------------------------------------------------- */
 
 HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
-				   rxstate_t *rx, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg);
+				   rxconfig_t *rxcfg, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg);
 
 int setwnd_registerclass(uicommon_t *uidata);
 void setwnd_unregisterclass(HINSTANCE h_inst);

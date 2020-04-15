@@ -4,7 +4,18 @@
 
 /* ---------------------------------------------------------------------------------------------- */
 
-static void freqcfg_load(freqcfg_t *fcfg, ini_data_t *ini)
+void freqcfg_set_defaults(freqcfg_t *fcfg)
+{
+	fcfg->disp_f_0				= 26.9e6;
+	fcfg->disp_f_1				= 27.5e6;
+
+	fcfg->f_disp_range_snap		=   25e3;
+	fcfg->f_mark_snap			= 6.25e3;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+void freqcfg_load(freqcfg_t *fcfg, ini_data_t *ini)
 {
 	ini_sect_t *sect;
 	double disp_f_0, disp_f_1;
@@ -28,20 +39,7 @@ static void freqcfg_load(freqcfg_t *fcfg, ini_data_t *ini)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void freqcfg_init(freqcfg_t *fcfg, ini_data_t *ini)
-{
-	fcfg->disp_f_0				= 26.9e6;
-	fcfg->disp_f_1				= 27.5e6;
-
-	fcfg->f_disp_range_snap		=   25e3;
-	fcfg->f_mark_snap			= 6.25e3;
-
-	freqcfg_load(fcfg, ini);
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-void freqcfg_save(freqcfg_t *fcfg, ini_data_t *ini)
+void freqcfg_save(ini_data_t *ini, const freqcfg_t *fcfg)
 {
 	ini_sect_t *sect;
 

@@ -52,6 +52,7 @@ typedef struct cmwnd_ctx {
 
 	/* receiver state */
 	rxstate_t *rx;
+	rxprocconfig_t *procdefcfg;
 
 	/* row index list for various purposes */
 	cmwnd_rowlist_t rowlist;
@@ -273,7 +274,7 @@ enum {
 
 /* create channel manager window */
 HWND cmwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
-				  rxstate_t *rx, HWND hwndMain);
+				  rxstate_t *rx, rxprocconfig_t *procdefcfg, HWND hwndMain);
 
 /* register channel manager window class */
 int cmwnd_registerclass(uicommon_t *uidata);

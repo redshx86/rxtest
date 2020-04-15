@@ -103,13 +103,13 @@ typedef struct rxsql_state {
 /* ---------------------------------------------------------------------------------------------- */
 
 /* initialize squelch configuration */
-void rxsql_cfg_reset(rxsql_cfg_t *cfg);
+void rxsql_cfg_set_defaults(rxsql_cfg_t *cfg);
 
 /* load squelch configuration */
 void rxsql_cfg_load(rxsql_cfg_t *cfg, ini_sect_t *sect);
 
 /* save squelch configuration */
-void rxsql_cfg_save(rxsql_cfg_t *cfg, ini_sect_t *sect);
+void rxsql_cfg_save(ini_sect_t *sect, const rxsql_cfg_t *cfg);
 
 /* ---------------------------------------------------------------------------------------------- */
 

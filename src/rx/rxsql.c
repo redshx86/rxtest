@@ -5,7 +5,7 @@
 /* ---------------------------------------------------------------------------------------------- */
 
 /* initialize squelch configuration */
-void rxsql_cfg_reset(rxsql_cfg_t *cfg)
+void rxsql_cfg_set_defaults(rxsql_cfg_t *cfg)
 {
 	cfg->use_carr_filter	= 1;
 
@@ -50,7 +50,7 @@ void rxsql_cfg_load(rxsql_cfg_t *cfg, ini_sect_t *sect)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* save squelch configuration */
-void rxsql_cfg_save(rxsql_cfg_t *cfg, ini_sect_t *sect)
+void rxsql_cfg_save(ini_sect_t *sect, const rxsql_cfg_t *cfg)
 {
 	ini_setb(sect, _T("sql_use_carr_filter"), cfg->use_carr_filter);
 

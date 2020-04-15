@@ -110,10 +110,10 @@ static int chanopt_apply_decim(chanopt_ctx_t *ctx)
 	notify_proc_list_t channelList;
 
 	/* get defaults */
-	decim_frgran = (int)(ctx->rx->config.proc_decim_frgran);
-	decim_mcsdf = (int)(ctx->rx->config.proc_decim_mcsdf);
-	decim_dff = ctx->rx->config.proc_decim_dff;
-	decim_as = ctx->rx->config.proc_decim_as;
+	decim_frgran = (int)(ctx->procdefcfg->decim_frgran);
+	decim_mcsdf = (int)(ctx->procdefcfg->decim_mcsdf);
+	decim_dff = ctx->procdefcfg->decim_dff;
+	decim_as = ctx->procdefcfg->decim_as;
 
 	/* parse decimator frequency response granularity */
 	Edit_GetText(ctx->hwndEditDecimFrgran,
@@ -178,10 +178,10 @@ static int chanopt_apply_decim(chanopt_ctx_t *ctx)
 	/* save defaults if requested */
 	if(Button_GetCheck(ctx->hwndBtnDecimSetDefs) & BST_CHECKED)
 	{
-		ctx->rx->config.proc_decim_frgran = decim_frgran;
-		ctx->rx->config.proc_decim_mcsdf = decim_mcsdf;
-		ctx->rx->config.proc_decim_dff = decim_dff;
-		ctx->rx->config.proc_decim_as = decim_as;
+		ctx->procdefcfg->decim_frgran = decim_frgran;
+		ctx->procdefcfg->decim_mcsdf = decim_mcsdf;
+		ctx->procdefcfg->decim_dff = decim_dff;
+		ctx->procdefcfg->decim_as = decim_as;
 
 		Button_SetCheck(ctx->hwndBtnDecimSetDefs, BST_UNCHECKED);
 	}
@@ -239,7 +239,7 @@ static int chanopt_apply_dcrem(chanopt_ctx_t *ctx)
 	notify_proc_list_t channelList;
 
 	/* get defaults */
-	dcrem_alpha = ctx->rx->config.proc_dcrem_alpha;
+	dcrem_alpha = ctx->procdefcfg->output_dcrem_alpha;
 
 	/* parse dc remover alpha parameter */
 	Edit_GetText(ctx->hwndEditDcremAlpha,
@@ -259,7 +259,7 @@ static int chanopt_apply_dcrem(chanopt_ctx_t *ctx)
 	/* save defaults if requested */
 	if(Button_GetCheck(ctx->hwndBtnDcremSetDefs) & BST_CHECKED)
 	{
-		ctx->rx->config.proc_dcrem_alpha = dcrem_alpha;
+		ctx->procdefcfg->output_dcrem_alpha = dcrem_alpha;
 
 		Button_SetCheck(ctx->hwndBtnDcremSetDefs, BST_UNCHECKED);
 	}
@@ -447,7 +447,8 @@ static int chanopt_windowtitle(chanopt_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 int chanopt_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-						 rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
+						 rxstate_t *rx, rxprocconfig_t *procdefcfg,
+						 unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
 	chanopt_ctx_t *ctx;
@@ -463,6 +464,7 @@ int chanopt_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwn
 	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
+	ctx->procdefcfg = procdefcfg;
 	ctx->chidList = chidList;
 	ctx->chidCount = chidCount;
 	

@@ -29,9 +29,9 @@ static setwnd_page_entry_t setwnd_page[] =
 
 static void setwnd_data_init(setwnd_ctx_t *ctx)
 {
-	pageproc_data_init(&(ctx->data_proc), &(ctx->rx->config));
-	pageaud_data_init(&(ctx->data_aud), &(ctx->rx->config));
-	pagevis_data_init(&(ctx->data_vis), &(ctx->rx->config), ctx->svcfg, ctx->wvcfg);
+	pageproc_data_init(&(ctx->data_proc), ctx->rxcfg);
+	pageaud_data_init(&(ctx->data_aud), ctx->rxcfg);
+	pagevis_data_init(&(ctx->data_vis), ctx->rxcfg, ctx->svcfg, ctx->wvcfg);
 	pagecrsv_data_init(&(ctx->data_crsv), ctx->svcfg);
 	pagecrwv_data_init(&(ctx->data_crwv), ctx->wvcfg);
 }
@@ -40,23 +40,15 @@ static void setwnd_data_init(setwnd_ctx_t *ctx)
 
 static int setwnd_data_apply(setwnd_ctx_t *ctx)
 {
-	int status = 1;
-
-	pageproc_data_apply(&(ctx->rx->config), &(ctx->data_proc));
-	pageaud_data_apply(&(ctx->rx->config), &(ctx->data_aud));
-
-	if(!pagevis_data_apply(ctx->rx, ctx->svcfg, ctx->wvcfg, &(ctx->data_vis),
-		ctx->hwnd, ctx->uidata->msgbuf, ctx->uidata->msgbuf_size))
-	{
-		status = 0;
-	}
-
+	pageproc_data_apply(ctx->rxcfg, &(ctx->data_proc));
+	pageaud_data_apply(ctx->rxcfg, &(ctx->data_aud));
+	pagevis_data_apply(ctx->rxcfg, ctx->svcfg, ctx->wvcfg, &(ctx->data_vis));
 	pagecrsv_data_apply(ctx->svcfg, &(ctx->data_crsv));
 	pagecrwv_data_apply(ctx->wvcfg, &(ctx->data_crwv));
 
 	uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_CFG, NULL);
 
-	return status;
+	return 1;
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -335,7 +327,7 @@ static LRESULT CALLBACK setwnd_proc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 /* ---------------------------------------------------------------------------------------------- */
 
 HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
-				   rxstate_t *rx, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg)
+				   rxconfig_t *rxcfg, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg)
 {
 	setwnd_ctx_t *ctx;
 	int win_x, win_y, win_w, win_h;
@@ -349,7 +341,7 @@ HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
 
 	ctx->ini = ini;
 	
-	ctx->rx = rx;
+	ctx->rxcfg = rxcfg;
 	ctx->svcfg = svcfg;
 	ctx->wvcfg = wvcfg;
 

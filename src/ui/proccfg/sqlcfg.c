@@ -112,13 +112,13 @@ static int sqlcfg_apply(sqlcfg_ctx_t *ctx)
 	/* save default values */
 	if(Button_GetCheck(ctx->hwndBtnSaveDef) & BST_CHECKED)
 	{
-		if(!use_carrf_keep) ctx->rx->config.proc_sql_def.use_carr_filter = use_carrf;
-		if(!bwf) ctx->rx->config.proc_sql_def.bw = bw;
-		if(!epf) ctx->rx->config.proc_sql_def.envef_param = ep;
-		if(!otf) ctx->rx->config.proc_sql_def.op_thres_db = ot;
-		if(!ctf) ctx->rx->config.proc_sql_def.cl_thres_db = ct;
-		if(!odf) ctx->rx->config.proc_sql_def.op_dly_ms = od;
-		if(!cdf) ctx->rx->config.proc_sql_def.cl_dly_ms = cd;
+		if(!use_carrf_keep) ctx->procdefcfg->sql.use_carr_filter = use_carrf;
+		if(!bwf) ctx->procdefcfg->sql.bw = bw;
+		if(!epf) ctx->procdefcfg->sql.envef_param = ep;
+		if(!otf) ctx->procdefcfg->sql.op_thres_db = ot;
+		if(!ctf) ctx->procdefcfg->sql.cl_thres_db = ct;
+		if(!odf) ctx->procdefcfg->sql.op_dly_ms = od;
+		if(!cdf) ctx->procdefcfg->sql.cl_dly_ms = cd;
 
 		Button_SetCheck(ctx->hwndBtnSaveDef, BST_UNCHECKED);
 	}
@@ -451,7 +451,8 @@ static int sqlcfg_windowtitle(sqlcfg_ctx_t *ctx)
 /* ---------------------------------------------------------------------------------------------- */
 
 int sqlcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwndOwner,
-						rxstate_t *rx, unsigned int *chidList, int chidCount, int x, int y)
+						rxstate_t *rx, rxprocconfig_t *procdefcfg,
+						unsigned int *chidList, int chidCount, int x, int y)
 {
 	HWND hwnd;
 	sqlcfg_ctx_t *ctx;
@@ -467,6 +468,7 @@ int sqlcfg_createwindow(uicommon_t *uidata, uievent_t *event_procchan, HWND hwnd
 	ctx->event_procchan = event_procchan;
 
 	ctx->rx = rx;
+	ctx->procdefcfg = procdefcfg;
 	ctx->chidList = chidList;
 	ctx->chidCount = chidCount;
 

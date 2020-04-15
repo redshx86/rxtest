@@ -34,9 +34,9 @@ typedef struct rxproc_fm {
 
 /* ---------------------------------------------------------------------------------------------- */
 
-void rxproc_fm_cfg_reset(rxproc_fm_config_t *cfg);
+void rxproc_fm_cfg_set_defaults(rxproc_fm_config_t *cfg);
 void rxproc_fm_cfg_load(rxproc_fm_config_t *cfg, ini_sect_t *sect);
-void rxproc_fm_cfg_save(rxproc_fm_config_t *cfg, ini_sect_t *sect);
+void rxproc_fm_cfg_save(ini_sect_t *sect, const rxproc_fm_config_t *cfg);
 
 /* ---------------------------------------------------------------------------------------------- */
 

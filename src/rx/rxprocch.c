@@ -1086,14 +1086,11 @@ void rxproc_stop(rxproc_t *proc)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* initialize new processing channel
- *	name : channel name,
- *	fc : channel center frequency, Hz,
- *	config : global configuration for defaults,
- *	loadsect : ini section to load configuration,
+ *	cfg_init : configuration to initialize,
  *	act_cb : activity status callback function,
  *	act_ctx : activity status callback context. */
-rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
-					  rxconfig_t *config, ini_sect_t *loadsect,
+rxproc_t *rxproc_init(struct rxstate *rx,
+					  const rxprocconfig_t *cfg_init,
 					  rxproc_activity_callback_t act_cb, void *act_ctx,
 					  TCHAR *errbuf, size_t errbufsize)
 {
@@ -1110,8 +1107,10 @@ rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
 		proc->act_ctx = act_ctx;
 
 		/* initialize channel config */
-		if(rxprocconfig_init(&(proc->cfg), config, name, fc, loadsect))
+		if(rxprocconfig_init(&(proc->cfg)))
 		{
+			rxprocconfig_copy(&(proc->cfg), cfg_init);
+
 			/* initialize events and critical sections */
 			InitializeCriticalSection(&(proc->cs_proc));
 			proc->evt_proc_stop = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -1125,7 +1124,7 @@ rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
 			CloseHandle(proc->evt_proc_stop);
 			DeleteCriticalSection(&(proc->cs_proc));
 
-			rxprocconfig_cleanup(&(proc->cfg), NULL);
+			rxprocconfig_cleanup(&(proc->cfg));
 		}
 
 		free(proc);
@@ -1133,7 +1132,7 @@ rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
 
 	if(_tcscmp(errbuf, _T("")) == 0) {
 		_sntprintf(errbuf, errbufsize,
-			_T("Can't initialize channel '%s' (out of memory?)"), name);
+			_T("Can't initialize channel '%s' (out of memory?)"), cfg_init->name);
 	}
 
 	return NULL;
@@ -1141,9 +1140,8 @@ rxproc_t *rxproc_init(struct rxstate *rx, TCHAR *name, double fc,
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* free processing channel
- *	savesect : ini section to save configuration to. */
-void rxproc_clenaup(rxproc_t *proc, ini_sect_t *savesect)
+/* free processing channel */
+void rxproc_clenaup(rxproc_t *proc)
 {
 	/* stop processing */
 	rxproc_stop(proc);
@@ -1153,7 +1151,7 @@ void rxproc_clenaup(rxproc_t *proc, ini_sect_t *savesect)
 	CloseHandle(proc->evt_proc_stop);
 	DeleteCriticalSection(&(proc->cs_proc));
 
-	rxprocconfig_cleanup(&(proc->cfg), savesect);
+	rxprocconfig_cleanup(&(proc->cfg));
 	free(proc);
 }
 
