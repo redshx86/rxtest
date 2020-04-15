@@ -16,55 +16,24 @@ void pagecrwv_data_init(pagecrwv_data_t *data, watrview_cfg_t *wvcfg)
 	data->cr_scrbar = wvcfg->cr_scrbar;
 
 	data->cr_pt_count = wvcfg->cr_pt_count;
-	memcpy(data->cr_pt, wvcfg->cr_pt,
-		wvcfg->cr_pt_count * sizeof(watrview_cr_map_pt_t));
+	memcpy(data->cr_pt, wvcfg->cr_pt, sizeof(wvcfg->cr_pt));
 
 	data->use_chan_crmap = wvcfg->use_chan_crmap;
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int pagecrwv_data_apply(watrview_ctx_t *watrview, pagecrwv_data_t *data,
-						uievent_t *event_visualcfg, HWND hwndMsgbox)
+void pagecrwv_data_apply(watrview_cfg_t *wvcfg, pagecrwv_data_t *data)
 {
-	int status = 1;
+	wvcfg->cr_bkgnd = data->cr_bkgnd;
+	wvcfg->cr_label = data->cr_label;
+	wvcfg->cr_ticks = data->cr_ticks;
+	wvcfg->cr_scrbar = data->cr_scrbar;
 
-	/* check config changed */
-	if( (data->cr_bkgnd != watrview->cfg.cr_bkgnd) ||
-		(data->cr_label != watrview->cfg.cr_label) ||
-		(data->cr_ticks != watrview->cfg.cr_ticks) ||
-		(data->cr_scrbar != watrview->cfg.cr_scrbar) ||
-		(data->use_chan_crmap != watrview->cfg.use_chan_crmap) ||
-		(data->cr_pt_count != watrview->cfg.cr_pt_count) ||
-		(memcmp(data->cr_pt, watrview->cfg.cr_pt,
-			data->cr_pt_count * sizeof(watrview_cr_map_pt_t)) != 0) )
-	{
-		/* set new config */
-		watrview->cfg.cr_bkgnd = data->cr_bkgnd;
-		watrview->cfg.cr_label = data->cr_label;
-		watrview->cfg.cr_ticks = data->cr_ticks;
-		watrview->cfg.cr_scrbar = data->cr_scrbar;
+	wvcfg->cr_pt_count = data->cr_pt_count;
+	memcpy(wvcfg->cr_pt, data->cr_pt, sizeof(wvcfg->cr_pt));
 
-		watrview->cfg.cr_pt_count = data->cr_pt_count;
-		memcpy(watrview->cfg.cr_pt, data->cr_pt,
-			data->cr_pt_count * sizeof(watrview_cr_map_pt_t));
-
-		watrview->cfg.use_chan_crmap = data->use_chan_crmap;
-
-		/* reinit waterfall viewer resources */
-		if(!watrview_res_reinit(watrview))
-		{
-			MessageBox(hwndMsgbox,
-				_T("Can't initialize waterfall viewer resources."), ui_title,
-				MB_ICONEXCLAMATION|MB_OK);
-			status = 0;
-		}
-
-		/* force waterfall viewer redraw */
-		uievent_send(event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
-	}
-
-	return status;
+	wvcfg->use_chan_crmap = data->use_chan_crmap;
 }
 
 /* ---------------------------------------------------------------------------------------------- */

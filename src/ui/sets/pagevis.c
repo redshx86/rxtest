@@ -37,15 +37,12 @@ void pagevis_data_init(pagevis_data_t *data, rxconfig_t *rxcfg,
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
-					   watrview_ctx_t *watrview, pagevis_data_t *data,
-					   uievent_t *event_visualcfg,
-					   HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size)
+int pagevis_data_apply(rxstate_t *rx, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
+					   pagevis_data_t *data, HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size)
 {
 	int status = 1;
-	int sv_update = 0, wv_update = 0;
 
-	/* apply new spectrum analyzer config */
+	/* Update spectrum analyzer configuration */
 	if( (data->spect_ups_req != (int)(rx->config.spect_ups_req)) ||
 		(data->spect_length != (int)(rx->config.spect_length)) ||
 		(data->spect_bufcount != (int)(rx->config.spect_bufcount)) ||
@@ -62,68 +59,17 @@ int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
 		}
 	}
 
-	/* apply new spectrum viewer config */
-	if( (fabs(data->sv_m_0 - specview->cfg.m_0) >= 1e-6) ||
-		(fabs(data->sv_m_1 - specview->cfg.m_1) >= 1e-6) )
-	{
-		specview->cfg.m_0 = data->sv_m_0;
-		specview->cfg.m_1 = data->sv_m_1;
+	/* Update spectrum viewer configuration */
+	specviewcfg->m_0 = data->sv_m_0;
+	specviewcfg->m_1 = data->sv_m_1;
+	specviewcfg->scale_mode = data->sv_scale_mode;
+	specviewcfg->show_ups_counter = data->sv_show_ups_counter;
 
-		if(!specview_set_mag_range(specview))
-		{
-			_sntprintf(msgbuf, msgbuf_size,
-				_T("Can't set spectrum viewer magnitude range (%f to %f dB)."),
-				data->sv_m_0, data->sv_m_1);
-			MessageBox(hwndMsgbox, msgbuf, ui_title, MB_ICONEXCLAMATION|MB_OK);
-			status = 0;
-		}
-
-		sv_update = 1;
-	}
-
-	if( (specview->cfg.scale_mode != data->sv_scale_mode) ||
-		(specview->cfg.show_ups_counter != data->sv_show_ups_counter) )
-	{
-		specview->cfg.scale_mode = data->sv_scale_mode;
-		specview->cfg.show_ups_counter = data->sv_show_ups_counter;
-
-		sv_update = 1;
-	}
-
-	/* apply new waterfall viewer config */
-	if( (watrview->cfg.scale_mode != data->wv_scale_mode) ||
-		(watrview->cfg.framediv != data->wv_framediv) )
-	{
-		watrview->cfg.scale_mode = data->wv_scale_mode;
-		watrview->cfg.framediv = data->wv_framediv;
-
-		wv_update = 1;
-	}
-
-	if( (data->wv_chain_max_len != watrview->cfg.chain_max_len) ||
-		(data->wv_seg_len != watrview->cfg.seg_len) )
-	{
-		if(!watrview_set_len(watrview, data->wv_chain_max_len, data->wv_seg_len))
-		{
-			_sntprintf(msgbuf, msgbuf_size,
-				_T("Can't set waterfall viewer buffer length ")
-				_T("(max chain length: %d pixels, segment length: %d pixels)."),
-				data->wv_chain_max_len, data->wv_seg_len);
-			MessageBox(hwndMsgbox, msgbuf, ui_title, MB_ICONEXCLAMATION|MB_OK);
-			status = 0;
-		}
-
-		wv_update = 1;
-	}
-	
-	/* send notifications */
-	if(sv_update) {
-		uievent_send(event_visualcfg, EVENT_VISUALCFG_SPECVIEW, NULL);
-	}
-
-	if(wv_update) {
-		uievent_send(event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
-	}
+	/* Update waterfall viewer configuration */
+	watrviewcfg->scale_mode = data->wv_scale_mode;
+	watrviewcfg->framediv = data->wv_framediv;
+	watrviewcfg->chain_max_len = data->wv_chain_max_len;
+	watrviewcfg->seg_len = data->wv_seg_len;
 
 	return status;
 }

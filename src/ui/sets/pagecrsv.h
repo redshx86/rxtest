@@ -132,7 +132,6 @@ int pagecrsv_save(pagecrsv_data_t *data, HWND hwndPage);
 
 void pagecrsv_data_init(pagecrsv_data_t *data, specview_cfg_t *svcfg);
 
-int pagecrsv_data_apply(specview_ctx_t *specview, pagecrsv_data_t *data,
-						uievent_t *event_visualcfg, HWND hwndMsgbox);
+void pagecrsv_data_apply(specview_cfg_t *svcfg, pagecrsv_data_t *data);
 
 /* ---------------------------------------------------------------------------------------------- */

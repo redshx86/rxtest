@@ -314,26 +314,36 @@ typedef enum watrview_point_type {
 
 /* ---------------------------------------------------------------------------------------------- */
 
+/* initialize default waterfall viewer config */
+void watrview_cfg_reset(watrview_cfg_t *cfg);
+
+/* load waterfall viewer configuration */
+void watrview_cfg_load(watrview_cfg_t *cfg, ini_sect_t *sect);
+
+/* save waterfall viewer configuration */
+void watrview_cfg_save(ini_sect_t *sect, const watrview_cfg_t *cfg);
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* initialize waterfall viewer */
 watrview_ctx_t *watrview_init(HDC hdc, HFONT hfont,
 							  rxstate_t *rx, double f_0, double f_1,
-							  int win_w, int win_h, ini_sect_t *sect);
+							  int win_w, int win_h,
+							  const watrview_cfg_t *cfg_init);
 
 /* free waterfall viewer */
-void watrview_cleanup(watrview_ctx_t *ctx, ini_sect_t *sect);
+void watrview_cleanup(watrview_ctx_t *ctx);
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* reallocate all gdi resources and invalidate graphics */
-int watrview_res_reinit(watrview_ctx_t *ctx);
-
-/* ---------------------------------------------------------------------------------------------- */
+/* set viewer configuration */
+int watrview_cfg_set(watrview_ctx_t *ctx, const watrview_cfg_t *cfg_new, int *p_update);
 
 /* set window size */
 int watrview_set_size(watrview_ctx_t *ctx, HDC hdc, int win_w, int win_h);
 
 /* set maximum chain length and segment length */
-int watrview_set_len(watrview_ctx_t *ctx, int chain_max_len, int seg_len);
+//int watrview_set_len(watrview_ctx_t *ctx, int chain_max_len, int seg_len);
 
 /* scroll viewer by specified pixel count */
 int watrview_scroll(watrview_ctx_t *ctx, int delta);

@@ -22,8 +22,10 @@ enum {
 enum {
 	EVENT_RX_STATE_START,
 	EVENT_RX_STATE_STOP,
+	EVENT_RX_STATE_SET_CFG,
 	EVENT_RX_STATE_SET_INPUT_FC,
-	EVENT_RX_STATE_SET_OUT_GAIN
+	EVENT_RX_STATE_SET_OUT_GAIN,
+	EVENT_RX_STATE_SET_DISPLAY_F_RANGE
 };
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -47,16 +49,6 @@ typedef struct notify_proc_list {
 	int count;
 	unsigned int *items;
 } notify_proc_list_t;
-
-/* ---------------------------------------------------------------------------------------------- */
-
-#define EVENT_NAME_VISUALCFG		"visual_config"
-
-enum {
-	EVENT_VISUALCFG_SPECVIEW,
-	EVENT_VISUALCFG_WATRVIEW,
-	EVENT_VISUALCFG_FREQ_RANGE
-};
 
 /* ---------------------------------------------------------------------------------------------- */
 

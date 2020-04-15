@@ -20,7 +20,6 @@ typedef struct freqwnd_ctx {
 
 	uievent_t *event_window_close;
 	uievent_t *event_rx_state;
-	uievent_t *event_visualcfg;
 
 	freqcfg_t *fcfg;
 	rxstate_t *rx;

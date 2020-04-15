@@ -105,12 +105,10 @@ int pagevis_create(HWND hwndSetWnd, HWND hwndPage, uicommon_t *uidata, pagevis_d
 
 int pagevis_save(pagevis_data_t *data, HWND hwndPage);
 
-void pagevis_data_init(pagevis_data_t *data, rxconfig_t *rxcfg,
-					   specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg);
+void pagevis_data_init(pagevis_data_t *data,
+					   rxconfig_t *rxcfg, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg);
 
-int pagevis_data_apply(rxstate_t *rx, specview_ctx_t *specview,
-					   watrview_ctx_t *watrview, pagevis_data_t *data,
-					   uievent_t *event_visualcfg,
-					   HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size);
+int pagevis_data_apply(rxstate_t *rx, specview_cfg_t *specviewcfg, watrview_cfg_t *watrviewcfg,
+					   pagevis_data_t *data, HWND hwndMsgbox, TCHAR *msgbuf, size_t msgbuf_size);
 
 /* ---------------------------------------------------------------------------------------------- */

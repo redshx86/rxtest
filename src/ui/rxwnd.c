@@ -143,7 +143,7 @@ static void rxwnd_cmd_showsettingswnd(rxwnd_ctx_t *ctx)
 	{
 		if( (ctx->hwndSettings = setwnd_create(
 			ctx->uidata, ctx->hwnd, ctx->ini,
-			ctx->rx, ctx->specview, ctx->watrview)) == NULL )
+			ctx->rx, &(ctx->svcfg), &(ctx->wvcfg))) == NULL )
 		{
 			MessageBox(ctx->hwnd, _T("Can't create settings window."),
 				ui_title, MB_ICONEXCLAMATION|MB_OK);
@@ -488,20 +488,24 @@ static int rxwnd_visualinit(rxwnd_ctx_t *ctx)
 		return 0;
 
 	/* initialize spectrum viewer */
+	specview_cfg_reset(&(ctx->svcfg));
+	specview_cfg_load(&(ctx->svcfg), ini_sect_get(ctx->ini, _T("specview"), 0));
 	ctx->specview = specview_init(hdc,
 		ctx->uidata->hfnt_viewers, ctx->rx,
 		ctx->fcfg.disp_f_0, ctx->fcfg.disp_f_1,
 		ctx->specview_rect.right - ctx->specview_rect.left,
 		ctx->specview_rect.bottom - ctx->specview_rect.top,
-		ini_sect_get(ctx->ini, _T("specview"), 0));
+		&(ctx->svcfg));
 
 	/* initialize waterfall viewer */
+	watrview_cfg_reset(&(ctx->wvcfg));
+	watrview_cfg_load(&(ctx->wvcfg), ini_sect_get(ctx->ini, _T("watrview"), 0));
 	ctx->watrview = watrview_init(hdc,
 		ctx->uidata->hfnt_viewers, ctx->rx,
 		ctx->fcfg.disp_f_0, ctx->fcfg.disp_f_1,
 		ctx->watrview_rect.right - ctx->watrview_rect.left,
 		ctx->watrview_rect.bottom - ctx->watrview_rect.top,
-		ini_sect_get(ctx->ini, _T("watrview"), 0));
+		&(ctx->wvcfg));
 
 	/* check for initialization error */
 	if((ctx->specview == NULL) || (ctx->watrview == NULL))
@@ -524,60 +528,18 @@ static int rxwnd_visualinit(rxwnd_ctx_t *ctx)
 static void rxwnd_visualcleanup(rxwnd_ctx_t *ctx)
 {
 	/* free spectrum viewer */
-	specview_cleanup(ctx->specview,
-		ini_sect_get(ctx->ini, _T("specview"), 1));
+	specview_cfg_save(ini_sect_get(ctx->ini, _T("specview"), 1), &(ctx->svcfg));
+	specview_cleanup(ctx->specview);
 	ctx->specview = NULL;
 
 	/* free waterfall viewer */
-	watrview_cleanup(ctx->watrview,
-		ini_sect_get(ctx->ini, _T("watrview"), 1));
+	watrview_cfg_save(ini_sect_get(ctx->ini, _T("watrview"), 1), &(ctx->wvcfg));
+	watrview_cleanup(ctx->watrview);
 	ctx->watrview = NULL;
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* update viewers data when channel config changes */
-static void rxwnd_procchan_handler(rxwnd_ctx_t *ctx, unsigned int msg,
-								   notify_proc_list_t *channelList)
-{
-	switch(msg)
-	{
-	case EVENT_PROCCHAN_CREATE:
-	case EVENT_PROCCHAN_DELETE:
-	case EVENT_PROCCHAN_FREQ:
-	case EVENT_PROCCHAN_FILTERCFG:
-		specview_set_chmap(ctx->specview);
-		specview_set_sql(ctx->specview, 0, 0);
-		watrview_set_chmap(ctx->watrview);
-		rxwnd_visualupdate(ctx, 1, 1);
-		break;
-	case EVENT_PROCCHAN_SQLCFG:
-		specview_set_sql(ctx->specview, 0, 0);
-		rxwnd_visualupdate(ctx, 1, 0);
-		break;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-/* update viewers when viewers config changes */
-static void rxwnd_visualcfg_handler(rxwnd_ctx_t *ctx, unsigned int msg, void *data)
-{
-	switch(msg)
-	{
-	case EVENT_VISUALCFG_SPECVIEW:
-		rxwnd_visualupdate(ctx, 1, 0);
-		break;
-	case EVENT_VISUALCFG_WATRVIEW:
-		rxwnd_visualupdate(ctx, 0, 1);
-		break;
-	case EVENT_VISUALCFG_FREQ_RANGE:
-		rxwnd_visualupdate(ctx, 1, 1);
-		break;
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
 /* Mouse dragging subroutines */
 
 /* set input module center frequency */
@@ -636,7 +598,7 @@ static int rxwnd_setdispfreqrange(rxwnd_ctx_t *ctx, double f_0, double f_1, int 
 		if(is_changed)
 		{
 			if(notify) {
-				uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_FREQ_RANGE, NULL);
+				uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_DISPLAY_F_RANGE, NULL);
 			}
 			return 1;
 		}
@@ -816,7 +778,7 @@ static void rxwnd_drag_specview_plot_and_input_fc(rxwnd_ctx_t *ctx, int dx_full)
 		}
 
 		if(set_disprange_res > 0) {
-			uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_FREQ_RANGE, NULL);
+			uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_DISPLAY_F_RANGE, NULL);
 		}
 	}
 }
@@ -1025,9 +987,7 @@ static void rxwnd_drag_chan_sql_thres(rxwnd_ctx_t *ctx, unsigned int chid, int d
 static void rxwnd_drag_watrview_img(rxwnd_ctx_t *ctx, int dy)
 {
 	if(watrview_scroll(ctx->watrview, -dy))
-	{
-		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
-	}
+		rxwnd_visualupdate(ctx, 0, 1);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1038,11 +998,8 @@ static void rxwnd_drag_watrview_scrbar(rxwnd_ctx_t *ctx, int dy_full)
 	int scrbar_pos;
 
 	scrbar_pos = ctx->dragstate.scrbar_pos_org + dy_full;
-
 	if(watrview_drag_scrbar(ctx->watrview, scrbar_pos))
-	{
-		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
-	}
+		rxwnd_visualupdate(ctx, 0, 1);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1379,9 +1336,7 @@ static void rxwnd_wheel_watrview(rxwnd_ctx_t *ctx, int delta, WORD fwKeys)
 		delta *= 15;
 
 	if(watrview_scroll(ctx->watrview, -delta))
-	{
-		uievent_send(ctx->event_visualcfg, EVENT_VISUALCFG_WATRVIEW, NULL);
-	}
+		rxwnd_visualupdate(ctx, 0, 1);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1511,11 +1466,14 @@ static void rxwnd_handle_rxstop(rxwnd_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* handle receiver input center frequency changing notification */
-static void rxwnd_handle_rxsetinputfc(rxwnd_ctx_t *ctx)
+/* handle program configuration change */
+static void rxwnd_handle_set_cfg(rxwnd_ctx_t *ctx)
 {
-	specview_set_chmap(ctx->specview);
-	rxwnd_visualupdate(ctx, 1, 0);
+	int sv_update, wv_update;
+
+	specview_cfg_set(ctx->specview, &(ctx->svcfg), &sv_update);
+	watrview_cfg_set(ctx->watrview, &(ctx->wvcfg), &wv_update);
+	rxwnd_visualupdate(ctx, sv_update, wv_update);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1531,8 +1489,39 @@ static void rxwnd_rx_state_handler(rxwnd_ctx_t *ctx, unsigned int msg, void *dat
 	case EVENT_RX_STATE_STOP:
 		rxwnd_handle_rxstop(ctx);
 		break;
+	case EVENT_RX_STATE_SET_CFG:
+		rxwnd_handle_set_cfg(ctx);
+		break;
 	case EVENT_RX_STATE_SET_INPUT_FC:
-		rxwnd_handle_rxsetinputfc(ctx);
+		specview_set_chmap(ctx->specview);
+		rxwnd_visualupdate(ctx, 1, 0);
+		break;
+	case EVENT_RX_STATE_SET_DISPLAY_F_RANGE:
+		rxwnd_visualupdate(ctx, 1, 1);
+		break;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* handle processing channel event */
+static void rxwnd_procchan_handler(rxwnd_ctx_t *ctx, unsigned int msg,
+								   notify_proc_list_t *channelList)
+{
+	switch(msg)
+	{
+	case EVENT_PROCCHAN_CREATE:
+	case EVENT_PROCCHAN_DELETE:
+	case EVENT_PROCCHAN_FREQ:
+	case EVENT_PROCCHAN_FILTERCFG:
+		specview_set_chmap(ctx->specview);
+		specview_set_sql(ctx->specview, 0, 0);
+		watrview_set_chmap(ctx->watrview);
+		rxwnd_visualupdate(ctx, 1, 1);
+		break;
+	case EVENT_PROCCHAN_SQLCFG:
+		specview_set_sql(ctx->specview, 0, 0);
+		rxwnd_visualupdate(ctx, 1, 0);
 		break;
 	}
 }
@@ -1718,7 +1707,6 @@ static int rxwnd_handle_init(rxwnd_ctx_t *ctx)
 	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_WNDCLOSE, ctx, rxwnd_window_close_handler);
 	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, rxwnd_rx_state_handler);
 	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, rxwnd_procchan_handler);
-	uievent_handler_add(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, rxwnd_visualcfg_handler);
 
 	/* restore receiver state after small timeout */
 	SetTimer(ctx->hwnd, RXWND_IDT_SESSIONRELOAD, 15, NULL);
@@ -1732,7 +1720,6 @@ static int rxwnd_handle_init(rxwnd_ctx_t *ctx)
 static void rxwnd_handle_destroy(rxwnd_ctx_t *ctx)
 {
 	/* unsubscribe from notifications */
-	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_VISUALCFG, ctx, rxwnd_visualcfg_handler);
 	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_PROCCHAN, ctx, rxwnd_procchan_handler);
 	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_RX_STATE, ctx, rxwnd_rx_state_handler);
 	uievent_handler_remove(&(ctx->uidata->event_list), EVENT_NAME_WNDCLOSE, ctx, rxwnd_window_close_handler);
@@ -1981,7 +1968,6 @@ HWND rxwnd_create(uicommon_t *uidata, ini_data_t *ini, ini_data_t *inich,
 
 	ctx->event_rx_state = uievent_register(&(uidata->event_list), EVENT_NAME_RX_STATE);
 	ctx->event_procchan = uievent_register(&(uidata->event_list), EVENT_NAME_PROCCHAN);
-	ctx->event_visualcfg = uievent_register(&(uidata->event_list), EVENT_NAME_VISUALCFG);
 
 	/* calculate window position */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

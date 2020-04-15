@@ -328,20 +328,30 @@ typedef enum specview_point_type {
 
 /* ---------------------------------------------------------------------------------------------- */
 
+/* set default spectrum viewer configuration */
+void specview_cfg_reset(specview_cfg_t *cfg);
+
+/* load spectrum viewer configuration */
+void specview_cfg_load(specview_cfg_t *cfg, ini_sect_t *sect);
+
+/* save specturm viewer configuration */
+void specview_cfg_save(ini_sect_t *sect, const specview_cfg_t *cfg);
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* initialize spectrum viewer */
 specview_ctx_t *specview_init(HDC hdc, HFONT hfont,
 							  rxstate_t *rx, double f_0, double f_1,
-							  int win_w, int win_h, ini_sect_t *sect);
+							  int win_w, int win_h,
+							  const specview_cfg_t *cfg_init);
 
 /* clean up spectrum viewer */
-void specview_cleanup(specview_ctx_t *ctx, ini_sect_t *sect);
+void specview_cleanup(specview_ctx_t *ctx);
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* reinit gdi resources after config change */
-int specview_res_reinit(specview_ctx_t *ctx);
-
-/* ---------------------------------------------------------------------------------------------- */
+/* set viewer configuration */
+int specview_cfg_set(specview_ctx_t *ctx, const specview_cfg_t *cfg_new, int *p_updated);
 
 /* set new spectrum viewer size */
 int specview_set_size(specview_ctx_t *ctx, HDC hdc, int win_w, int win_h);
@@ -350,7 +360,7 @@ int specview_set_size(specview_ctx_t *ctx, HDC hdc, int win_w, int win_h);
 int specview_set_freq_range(specview_ctx_t *ctx);
 
 /* set new magnitude range (get end magnitudes from config) */
-int specview_set_mag_range(specview_ctx_t *ctx);
+//int specview_set_mag_range(specview_ctx_t *ctx);
 
 /* set new channel map (reads channels from receiver state) */
 int specview_set_chmap(specview_ctx_t *ctx);

@@ -190,7 +190,6 @@ int pagecrwv_save(pagecrwv_data_t *data, HWND hwndPage);
 
 void pagecrwv_data_init(pagecrwv_data_t *data, watrview_cfg_t *wvcfg);
 
-int pagecrwv_data_apply(watrview_ctx_t *watrview, pagecrwv_data_t *data,
-						uievent_t *event_visualcfg, HWND hwndMsgbox);
+void pagecrwv_data_apply(watrview_cfg_t *wvcfg, pagecrwv_data_t *data);
 
 /* ---------------------------------------------------------------------------------------------- */

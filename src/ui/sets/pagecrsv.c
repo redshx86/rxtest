@@ -85,50 +85,19 @@ void pagecrsv_data_init(pagecrsv_data_t *data, specview_cfg_t *svcfg)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-int pagecrsv_data_apply(specview_ctx_t *specview, pagecrsv_data_t *data,
-						uievent_t *event_visualcfg, HWND hwndMsgbox)
+void pagecrsv_data_apply(specview_cfg_t *svcfg, pagecrsv_data_t *data)
 {
-	int status = 1;
-	COLORREF cr_cur[PAGECRSV_ROW_COUNT][PAGECRSV_COL_COUNT];
+	svcfg->cr_label = data->cr_label;
+	svcfg->cr_ticks = data->cr_ticks;
+	svcfg->cr_textbg = data->cr_textbg;
+	svcfg->cr_text = data->cr_text;
 
-	pagecrsv_cr_get(cr_cur, &(specview->cfg));
+	svcfg->cr_sq_sense_op = data->cr_sq_sense_op;
+	svcfg->cr_sq_sense_cl = data->cr_sq_sense_cl;
+	svcfg->cr_sq_thres_op = data->cr_sq_thres_op;
+	svcfg->cr_sq_thres_cl = data->cr_sq_thres_cl;
 
-	/* check spectrum viewer colors changed */
-	if( (specview->cfg.cr_label != data->cr_label) ||
-		(specview->cfg.cr_ticks != data->cr_ticks) ||
-		(specview->cfg.cr_textbg != data->cr_textbg) ||
-		(specview->cfg.cr_text != data->cr_text) ||
-		(specview->cfg.cr_sq_sense_op != data->cr_sq_sense_op) ||
-		(specview->cfg.cr_sq_sense_cl != data->cr_sq_sense_cl) ||
-		(specview->cfg.cr_sq_thres_op != data->cr_sq_thres_op) ||
-		(specview->cfg.cr_sq_thres_cl != data->cr_sq_thres_cl) ||
-		(memcmp(data->cr, cr_cur, sizeof(cr_cur)) != 0) )
-	{
-		/* set new colors */
-		specview->cfg.cr_label = data->cr_label;
-		specview->cfg.cr_ticks = data->cr_ticks;
-		specview->cfg.cr_textbg = data->cr_textbg;
-		specview->cfg.cr_text = data->cr_text;
-		specview->cfg.cr_sq_sense_op = data->cr_sq_sense_op;
-		specview->cfg.cr_sq_sense_cl = data->cr_sq_sense_cl;
-		specview->cfg.cr_sq_thres_op = data->cr_sq_thres_op;
-		specview->cfg.cr_sq_thres_cl = data->cr_sq_thres_cl;
-		pagecrsv_cr_set(&(specview->cfg), data->cr);
-
-		/* reinitialize spectrum viewer resources */
-		if(!specview_res_reinit(specview))
-		{
-			MessageBox(hwndMsgbox,
-				_T("Can't initialize spectrum viewer resources."),
-				ui_title, MB_ICONEXCLAMATION|MB_OK);
-			status = 0;
-		}
-
-		/* force spectrum viewer redraw */
-		uievent_send(event_visualcfg, EVENT_VISUALCFG_SPECVIEW, NULL);
-	}
-
-	return status;
+	pagecrsv_cr_set(svcfg, data->cr);
 }
 
 /* ---------------------------------------------------------------------------------------------- */

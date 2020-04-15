@@ -68,7 +68,6 @@ typedef struct rxwnd_ctx {
 
 	uievent_t *event_rx_state;
 	uievent_t *event_procchan;
-	uievent_t *event_visualcfg;
 
 	/* configuration files */
 	ini_data_t *ini, *inich;
@@ -76,8 +75,10 @@ typedef struct rxwnd_ctx {
 	/* receiver state */
 	rxstate_t *rx;
 
-	/* frequency config */
+	/* configuration */
 	freqcfg_t fcfg;
+	specview_cfg_t svcfg;
+	watrview_cfg_t wvcfg;
 
 	/* current cursor */
 	HCURSOR hcur_set;

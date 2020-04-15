@@ -31,10 +31,9 @@ static void setwnd_data_init(setwnd_ctx_t *ctx)
 {
 	pageproc_data_init(&(ctx->data_proc), &(ctx->rx->config));
 	pageaud_data_init(&(ctx->data_aud), &(ctx->rx->config));
-	pagevis_data_init(&(ctx->data_vis), &(ctx->rx->config),
-		&(ctx->specview->cfg), &(ctx->watrview->cfg));
-	pagecrsv_data_init(&(ctx->data_crsv), &(ctx->specview->cfg));
-	pagecrwv_data_init(&(ctx->data_crwv), &(ctx->watrview->cfg));
+	pagevis_data_init(&(ctx->data_vis), &(ctx->rx->config), ctx->svcfg, ctx->wvcfg);
+	pagecrsv_data_init(&(ctx->data_crsv), ctx->svcfg);
+	pagecrwv_data_init(&(ctx->data_crwv), ctx->wvcfg);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -46,23 +45,16 @@ static int setwnd_data_apply(setwnd_ctx_t *ctx)
 	pageproc_data_apply(&(ctx->rx->config), &(ctx->data_proc));
 	pageaud_data_apply(&(ctx->rx->config), &(ctx->data_aud));
 
-	if(!pagevis_data_apply(ctx->rx, ctx->specview, ctx->watrview, &(ctx->data_vis),
-		ctx->event_visualcfg, ctx->hwnd, ctx->uidata->msgbuf, ctx->uidata->msgbuf_size))
+	if(!pagevis_data_apply(ctx->rx, ctx->svcfg, ctx->wvcfg, &(ctx->data_vis),
+		ctx->hwnd, ctx->uidata->msgbuf, ctx->uidata->msgbuf_size))
 	{
 		status = 0;
 	}
 
-	if(!pagecrsv_data_apply(ctx->specview, &(ctx->data_crsv),
-		ctx->event_visualcfg, ctx->hwnd))
-	{
-		status = 0;
-	}
+	pagecrsv_data_apply(ctx->svcfg, &(ctx->data_crsv));
+	pagecrwv_data_apply(ctx->wvcfg, &(ctx->data_crwv));
 
-	if(!pagecrwv_data_apply(ctx->watrview, &(ctx->data_crwv),
-		ctx->event_visualcfg, ctx->hwnd))
-	{
-		status = 0;
-	}
+	uievent_send(ctx->event_rx_state, EVENT_RX_STATE_SET_CFG, NULL);
 
 	return status;
 }
@@ -343,7 +335,7 @@ static LRESULT CALLBACK setwnd_proc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 /* ---------------------------------------------------------------------------------------------- */
 
 HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
-				   rxstate_t *rx, specview_ctx_t *specview, watrview_ctx_t *watrview)
+				   rxstate_t *rx, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg)
 {
 	setwnd_ctx_t *ctx;
 	int win_x, win_y, win_w, win_h;
@@ -358,11 +350,11 @@ HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
 	ctx->ini = ini;
 	
 	ctx->rx = rx;
-	ctx->specview = specview;
-	ctx->watrview = watrview;
+	ctx->svcfg = svcfg;
+	ctx->wvcfg = wvcfg;
 
 	ctx->event_window_close = uievent_register(&(uidata->event_list), EVENT_NAME_WNDCLOSE);
-	ctx->event_visualcfg = uievent_register(&(uidata->event_list), EVENT_NAME_VISUALCFG);
+	ctx->event_rx_state = uievent_register(&(uidata->event_list), EVENT_NAME_RX_STATE);
 
 	/* calculate window position */
 	ui_frame_size(&(ctx->cx_frame), &(ctx->cy_frame),

@@ -1575,8 +1575,54 @@ int watrview_copy(watrview_ctx_t *ctx, HDC hdc_dest, int x, int y)
 
 /* ---------------------------------------------------------------------------------------------- */
 
+/* initialize default waterfall viewer config */
+void watrview_cfg_reset(watrview_cfg_t *cfg)
+{
+	/* initialize colors */
+	cfg->cr_bkgnd = RGB(0, 0, 64);
+	cfg->cr_label = RGB(0, 0, 0);
+	cfg->cr_scrbar = RGB(0, 0, 0);
+	cfg->cr_ticks = RGB(0, 0, 0);
+
+	/* initialize gradient color reference points */
+	cfg->cr_pt_count = 6;
+
+	cfg->cr_pt[0].m = -20.0;
+	cfg->cr_pt[0].cr_bkgnd = RGB(0, 0, 64);
+	cfg->cr_pt[0].cr_chan = RGB(0, 32, 64);
+
+	cfg->cr_pt[1].m = -10.0;
+	cfg->cr_pt[1].cr_bkgnd = RGB(0, 0, 128);
+	cfg->cr_pt[1].cr_chan = RGB(0, 64, 128);
+
+	cfg->cr_pt[2].m = 0.0;
+	cfg->cr_pt[2].cr_bkgnd = RGB(192, 0, 0);
+	cfg->cr_pt[2].cr_chan = RGB(192, 0, 0);
+
+	cfg->cr_pt[3].m = 10.0;
+	cfg->cr_pt[3].cr_bkgnd = RGB(255, 128, 0);
+	cfg->cr_pt[3].cr_chan = RGB(255, 128, 0);
+
+	cfg->cr_pt[4].m = 20.0;
+	cfg->cr_pt[4].cr_bkgnd = RGB(255, 255, 0);
+	cfg->cr_pt[4].cr_chan = RGB(255, 255, 0);
+
+	cfg->cr_pt[5].m = 30.0;
+	cfg->cr_pt[5].cr_bkgnd = RGB(255, 255, 255);
+	cfg->cr_pt[5].cr_chan = RGB(255, 255, 255);
+
+	/* initialize settings */
+	cfg->scale_mode = SPECSCALE_MAP_PEAK;
+	cfg->framediv = 1;
+	cfg->chain_max_len = 0;
+	cfg->seg_len = 1000;
+	cfg->use_chan_crmap = 1;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* load waterfall viewer configuration */
-static void watrview_cfg_load(watrview_cfg_t *cfg, ini_sect_t *sect)
+void watrview_cfg_load(watrview_cfg_t *cfg, ini_sect_t *sect)
 {
 	int bufsize, i;
 	TCHAR *buf, *p;
@@ -1667,7 +1713,7 @@ static void watrview_cfg_load(watrview_cfg_t *cfg, ini_sect_t *sect)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* save waterfall viewer configuration */
-static void watrview_cfg_save(watrview_cfg_t *cfg, ini_sect_t *sect)
+void watrview_cfg_save(ini_sect_t *sect, const watrview_cfg_t *cfg)
 {
 	TCHAR *buf, *p;
 	int i, bufsize;
@@ -1734,48 +1780,55 @@ static void watrview_cfg_save(watrview_cfg_t *cfg, ini_sect_t *sect)
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* initialize default waterfall viewer config */
-static void watrview_cfg_reset(watrview_cfg_t *cfg)
+/* set viewer configuration */
+int watrview_cfg_set(watrview_ctx_t *ctx, const watrview_cfg_t *cfg_new, int *p_update)
 {
-	/* initialize colors */
-	cfg->cr_bkgnd = RGB(0, 0, 64);
-	cfg->cr_label = RGB(0, 0, 0);
-	cfg->cr_scrbar = RGB(0, 0, 0);
-	cfg->cr_ticks = RGB(0, 0, 0);
+	int status = 1, need_update = 0;
 
-	/* initialize gradient color reference points */
-	cfg->cr_pt_count = 6;
+	/* Check for color configuration changes */
+	if( (cfg_new->cr_bkgnd != ctx->cfg.cr_bkgnd) || 
+		(cfg_new->cr_label != ctx->cfg.cr_label) || 
+		(cfg_new->cr_ticks != ctx->cfg.cr_ticks) || 
+		(cfg_new->cr_scrbar != ctx->cfg.cr_scrbar) || 
+		(cfg_new->cr_pt_count != ctx->cfg.cr_pt_count) || 
+		(memcmp(cfg_new->cr_pt, ctx->cfg.cr_pt,
+			cfg_new->cr_pt_count * sizeof(watrview_cr_map_pt_t)) != 0) )
+	{
+		/* Set new color configuration */
+		ctx->cfg.cr_bkgnd = cfg_new->cr_bkgnd;
+		ctx->cfg.cr_label = cfg_new->cr_label;
+		ctx->cfg.cr_ticks = cfg_new->cr_ticks;
+		ctx->cfg.cr_scrbar = cfg_new->cr_scrbar;
+		ctx->cfg.cr_pt_count = cfg_new->cr_pt_count;
+		memcpy(ctx->cfg.cr_pt, cfg_new->cr_pt, sizeof(ctx->cfg.cr_pt));
 
-	cfg->cr_pt[0].m = -20.0;
-	cfg->cr_pt[0].cr_bkgnd = RGB(0, 0, 64);
-	cfg->cr_pt[0].cr_chan = RGB(0, 32, 64);
+		/* Reinit GDI resources */
+		if(!watrview_res_reinit(ctx))
+			status = 0;
 
-	cfg->cr_pt[1].m = -10.0;
-	cfg->cr_pt[1].cr_bkgnd = RGB(0, 0, 128);
-	cfg->cr_pt[1].cr_chan = RGB(0, 64, 128);
+		need_update = 1;
+	}
 
-	cfg->cr_pt[2].m = 0.0;
-	cfg->cr_pt[2].cr_bkgnd = RGB(192, 0, 0);
-	cfg->cr_pt[2].cr_chan = RGB(192, 0, 0);
+	/* Check for buffer length changed */
+	if( (cfg_new->chain_max_len != ctx->cfg.chain_max_len) ||
+		(cfg_new->seg_len != ctx->cfg.seg_len) )
+	{
+		/* Update buffer segments */
+		if(!watrview_set_len(ctx, cfg_new->chain_max_len, cfg_new->seg_len))
+			status = 0;
 
-	cfg->cr_pt[3].m = 10.0;
-	cfg->cr_pt[3].cr_bkgnd = RGB(255, 128, 0);
-	cfg->cr_pt[3].cr_chan = RGB(255, 128, 0);
+		need_update = 1;
+	}
 
-	cfg->cr_pt[4].m = 20.0;
-	cfg->cr_pt[4].cr_bkgnd = RGB(255, 255, 0);
-	cfg->cr_pt[4].cr_chan = RGB(255, 255, 0);
+	/* Check for other parameters change (no update needed) */
+	ctx->cfg.scale_mode = cfg_new->scale_mode;
+	ctx->cfg.framediv = cfg_new->framediv;
 
-	cfg->cr_pt[5].m = 30.0;
-	cfg->cr_pt[5].cr_bkgnd = RGB(255, 255, 255);
-	cfg->cr_pt[5].cr_chan = RGB(255, 255, 255);
+	if(p_update)
+		*p_update = need_update;
 
-	/* initialize settings */
-	cfg->scale_mode = SPECSCALE_MAP_PEAK;
-	cfg->framediv = 1;
-	cfg->chain_max_len = 0;
-	cfg->seg_len = 1000;
-	cfg->use_chan_crmap = 1;
+	return status;
+
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -1783,7 +1836,8 @@ static void watrview_cfg_reset(watrview_cfg_t *cfg)
 /* initialize waterfall viewer */
 watrview_ctx_t *watrview_init(HDC hdc, HFONT hfont,
 							  rxstate_t *rx, double f_0, double f_1,
-							  int win_w, int win_h, ini_sect_t *sect)
+							  int win_w, int win_h,
+							  const watrview_cfg_t *cfg_init)
 {
 	watrview_ctx_t *ctx;
 
@@ -1815,8 +1869,7 @@ watrview_ctx_t *watrview_init(HDC hdc, HFONT hfont,
 			ctx->hfont = hfont;
 
 			/* initialize config */
-			watrview_cfg_reset(&(ctx->cfg));
-			watrview_cfg_load(&(ctx->cfg), sect);
+			memcpy(&(ctx->cfg), cfg_init, sizeof(ctx->cfg));
 
 			/* allocate all gdi resources */
 			if(watrview_res_init(&(ctx->res), &(ctx->cfg)))
@@ -1859,13 +1912,10 @@ watrview_ctx_t *watrview_init(HDC hdc, HFONT hfont,
 /* ---------------------------------------------------------------------------------------------- */
 
 /* free waterfall viewer */
-void watrview_cleanup(watrview_ctx_t *ctx, ini_sect_t *sect)
+void watrview_cleanup(watrview_ctx_t *ctx)
 {
 	if(ctx != NULL)
 	{
-		/* save configuration */
-		watrview_cfg_save(&(ctx->cfg), sect);
-
 		/* free time scale label buffer */
 		free(ctx->time_scale.label);
 

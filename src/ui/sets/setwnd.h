@@ -44,13 +44,13 @@ typedef struct setwnd_ctx {
 	uicommon_t *uidata;
 
 	uievent_t *event_window_close;
-	uievent_t *event_visualcfg;
+	uievent_t *event_rx_state;
 
 	ini_data_t *ini;
 
 	rxstate_t *rx;
-	specview_ctx_t *specview;
-	watrview_ctx_t *watrview;
+	specview_cfg_t *svcfg;
+	watrview_cfg_t *wvcfg;
 
 	HWND hwndPageList;
 	HWND hwndPageTitle;
@@ -87,7 +87,7 @@ typedef struct setwnd_ctx {
 /* ---------------------------------------------------------------------------------------------- */
 
 HWND setwnd_create(uicommon_t *uidata, HWND hwndMain, ini_data_t *ini,
-				   rxstate_t *rx, specview_ctx_t *specview, watrview_ctx_t *watrview);
+				   rxstate_t *rx, specview_cfg_t *svcfg, watrview_cfg_t *wvcfg);
 
 int setwnd_registerclass(uicommon_t *uidata);
 void setwnd_unregisterclass(HINSTANCE h_inst);

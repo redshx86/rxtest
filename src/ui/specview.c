@@ -1995,217 +1995,6 @@ static int specview_buf_init(specview_buf_ctx_t *buf, HDC hdc, int win_w, int wi
 
 /* ---------------------------------------------------------------------------------------------- */
 
-/* set new spectrum viewer size */
-int specview_set_size(specview_ctx_t *ctx, HDC hdc, int win_w, int win_h)
-{
-	int status;
-
-	if( (win_w < SPECVIEW_MIN_W) || (win_w > SPECVIEW_MAX_W) ||
-		(win_h < SPECVIEW_MIN_H) || (win_h > SPECVIEW_MAX_H) )
-	{
-		return 0;
-	}
-
-	if(ctx->buf.is_inited && (win_w == ctx->buf.win_w) && (win_h == ctx->buf.win_h))
-		return -1;
-
-	EnterCriticalSection(&(ctx->csec));
-
-	/* reinitialize buffer size */
-	status = specview_buf_init(&(ctx->buf), hdc, win_w, win_h);
-
-	if(status <= 0)
-	{
-		LeaveCriticalSection(&(ctx->csec));
-		return status;
-	}
-
-	/* invalidate data dependent of window size */
-	ctx->mag.is_inited = 0;
-	ctx->freq.is_inited = 0;
-	ctx->sql.is_inited = 0;
-
-	/* invalidate text buffer */
-	ctx->text.is_enabled = 0;
-	ctx->text.is_drawn = 0;
-	ctx->sql.is_copied = 0;
-
-	/* update data dependent of window size */
-	specview_set_mag_range(ctx);
-	specview_set_freq_range(ctx);
-	specview_set_chmap(ctx);
-	specview_set_sql(ctx, 1, 0);
-
-	LeaveCriticalSection(&(ctx->csec));
-
-	return 1;
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-/* initialize spectrum viewer configuration */
-static void specview_cfg_reset(specview_cfg_t *cfg)
-{
-	cfg->m_0 = -20.0;
-	cfg->m_1 = 40.0;
-
-	cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]				= RGB(48, 48, 48);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]			= RGB(0, 0, 128);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]			= RGB(128, 0, 0);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]			= RGB(192, 192, 192);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]			= RGB(192, 192, 192);
-
-	cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]			= RGB(0, 0, 0);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]		= RGB(0, 0, 128);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]		= RGB(128, 0, 0);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]		= RGB(128, 128, 128);
-	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]	= RGB(128, 128, 128);
-
-	cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]				= RGB(192, 192, 192);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]			= RGB(0, 0, 255);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]				= RGB(255, 0, 0);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]				= RGB(255, 255, 255);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]			= RGB(255, 255, 255);
-
-	cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]			= RGB(128, 128, 128);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]		= RGB(0, 0, 255);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]		= RGB(255, 0, 0);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]		= RGB(192, 192, 192);
-	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]		= RGB(192, 192, 192);
-
-	cfg->cr_ticks = RGB(0, 0, 0);
-	cfg->cr_label = RGB(0, 0, 0);
-	cfg->cr_text = RGB(255, 255, 0);
-	cfg->cr_textbg = RGB(0, 0, 128);
-	
-	cfg->cr_sq_sense_op = RGB(255, 255, 255);
-	cfg->cr_sq_sense_cl = RGB(64, 64, 64);
-	cfg->cr_sq_thres_op = RGB(0, 255, 0);
-	cfg->cr_sq_thres_cl = RGB(255, 0, 0);
-
-	cfg->scale_mode = SPECSCALE_MAP_PEAK;
-
-	cfg->show_ups_counter = 0;
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-/* load spectrum viewer configuration */
-static void specview_cfg_load(specview_cfg_t *cfg, ini_sect_t *sect)
-{
-	double m_0, m_1;
-
-	if(sect != NULL)
-	{
-		m_0 = cfg->m_0;
-		m_1 = cfg->m_1;
-
-		if( ini_getfr(sect, _T("m_0"), &m_0, SPECVIEW_MAGN_MINABS, SPECVIEW_MAGN_MAXABS) &&
-			ini_getfr(sect, _T("m_1"), &m_1, SPECVIEW_MAGN_MINABS, SPECVIEW_MAGN_MAXABS) &&
-			(m_1 > m_0) )
-		{
-			cfg->m_0 = m_0;
-			cfg->m_1 = m_1;
-		}
-
-		ini_getcr(sect, _T("cr_bkgnd_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]));
-		ini_getcr(sect, _T("cr_input_fc_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]));
-		ini_getcr(sect, _T("cr_chan_fc_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]));
-		ini_getcr(sect, _T("cr_chan_bw_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]));
-		ini_getcr(sect, _T("cr_chan_bwovl_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]));
-
-		ini_getcr(sect, _T("cr_bkgnd_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]));
-		ini_getcr(sect, _T("cr_input_fc_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]));
-		ini_getcr(sect, _T("cr_chan_fc_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]));
-		ini_getcr(sect, _T("cr_chan_bw_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]));
-		ini_getcr(sect, _T("cr_chan_bwovl_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]));
-
-		ini_getcr(sect, _T("cr_bkgnd_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]));
-		ini_getcr(sect, _T("cr_input_fc_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]));
-		ini_getcr(sect, _T("cr_chan_fc_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]));
-		ini_getcr(sect, _T("cr_chan_bw_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]));
-		ini_getcr(sect, _T("cr_chan_bwovl_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]));
-
-		ini_getcr(sect, _T("cr_bkgnd_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]));
-		ini_getcr(sect, _T("cr_input_fc_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]));
-		ini_getcr(sect, _T("cr_chan_fc_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]));
-		ini_getcr(sect, _T("cr_chan_bw_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]));
-		ini_getcr(sect, _T("cr_chan_bwovl_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]));
-
-		ini_getcr(sect, _T("cr_ticks"), &(cfg->cr_ticks));
-		ini_getcr(sect, _T("cr_label"), &(cfg->cr_label));
-		ini_getcr(sect, _T("cr_text"), &(cfg->cr_text));
-		ini_getcr(sect, _T("cr_textbg"), &(cfg->cr_textbg));
-
-		ini_getcr(sect, _T("cr_sq_sense_op"), &(cfg->cr_sq_sense_op));
-		ini_getcr(sect, _T("cr_sq_sense_cl"), &(cfg->cr_sq_sense_cl));
-		ini_getcr(sect, _T("cr_sq_thres_op"), &(cfg->cr_sq_thres_op));
-		ini_getcr(sect, _T("cr_sq_thres_cl"), &(cfg->cr_sq_thres_cl));
-
-		/*cfg->fontsize = ini_geti(sect, _T("fontsize"), cfg->fontsize, &usedef);
-		ini_copys(sect, _T("fontname"), cfg->fontname, LF_FACESIZE, cfg->fontname, &usedef);*/
-
-		ini_gete(sect, _T("scale_mode"), &(cfg->scale_mode), SPECSCAL_MAP_MODE_COUNT);
-
-		ini_getb(sect, _T("ups_display"), &(cfg->show_ups_counter));
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
-/* save specturm viewer configuration */
-static void specview_cfg_save(specview_cfg_t *cfg, ini_sect_t *sect)
-{
-	if(sect != NULL)
-	{
-		ini_setf(sect, _T("m_0"), 6, cfg->m_0);
-		ini_setf(sect, _T("m_1"), 6, cfg->m_1);
-
-		ini_setcr(sect, _T("cr_bkgnd_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]);
-		ini_setcr(sect, _T("cr_input_fc_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]);
-		ini_setcr(sect, _T("cr_chan_fc_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]);
-		ini_setcr(sect, _T("cr_chan_bw_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]);
-		ini_setcr(sect, _T("cr_chan_bwovl_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]);
-
-		ini_setcr(sect, _T("cr_bkgnd_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]);
-		ini_setcr(sect, _T("cr_input_fc_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]);
-		ini_setcr(sect, _T("cr_chan_fc_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]);
-		ini_setcr(sect, _T("cr_chan_bw_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]);
-		ini_setcr(sect, _T("cr_chan_bwovl_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]);
-
-		ini_setcr(sect, _T("cr_bkgnd_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]);
-		ini_setcr(sect, _T("cr_input_fc_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]);
-		ini_setcr(sect, _T("cr_chan_fc_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]);
-		ini_setcr(sect, _T("cr_chan_bw_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]);
-		ini_setcr(sect, _T("cr_chan_bwovl_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]);
-
-		ini_setcr(sect, _T("cr_bkgnd_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]);
-		ini_setcr(sect, _T("cr_input_fc_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]);
-		ini_setcr(sect, _T("cr_chan_fc_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]);
-		ini_setcr(sect, _T("cr_chan_bw_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]);
-		ini_setcr(sect, _T("cr_chan_bwovl_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]);
-
-		ini_setcr(sect, _T("cr_ticks"), cfg->cr_ticks);
-		ini_setcr(sect, _T("cr_label"), cfg->cr_label);
-		ini_setcr(sect, _T("cr_text"), cfg->cr_text);
-		ini_setcr(sect, _T("cr_textbg"), cfg->cr_textbg);
-
-		ini_setcr(sect, _T("cr_sq_sense_op"), cfg->cr_sq_sense_op);
-		ini_setcr(sect, _T("cr_sq_sense_cl"), cfg->cr_sq_sense_cl);
-		ini_setcr(sect, _T("cr_sq_thres_op"), cfg->cr_sq_thres_op);
-		ini_setcr(sect, _T("cr_sq_thres_cl"), cfg->cr_sq_thres_cl);
-
-		/*ini_seti(sect, _T("fontsize"), cfg->fontsize);
-		ini_set(sect, _T("fontname"), cfg->fontname);*/
-
-		ini_seti(sect, _T("scale_mode"), cfg->scale_mode);
-
-		ini_setb(sect, _T("ups_display"), cfg->show_ups_counter);
-	}
-}
-
-/* ---------------------------------------------------------------------------------------------- */
-
 /* gdi resources cleanup */
 static void specview_res_free(specview_res_ctx_t *res)
 {
@@ -2293,7 +2082,7 @@ static int specview_res_init(specview_res_ctx_t *res, specview_cfg_t *cfg)
 /* ---------------------------------------------------------------------------------------------- */
 
 /* reinit gdi resources after config change */
-int specview_res_reinit(specview_ctx_t *ctx)
+static int specview_res_reinit(specview_ctx_t *ctx)
 {
 	int status = 0;
 
@@ -2318,10 +2107,290 @@ int specview_res_reinit(specview_ctx_t *ctx)
 
 /* ---------------------------------------------------------------------------------------------- */
 
+/* set new spectrum viewer size */
+int specview_set_size(specview_ctx_t *ctx, HDC hdc, int win_w, int win_h)
+{
+	int status;
+
+	if( (win_w < SPECVIEW_MIN_W) || (win_w > SPECVIEW_MAX_W) ||
+		(win_h < SPECVIEW_MIN_H) || (win_h > SPECVIEW_MAX_H) )
+	{
+		return 0;
+	}
+
+	if(ctx->buf.is_inited && (win_w == ctx->buf.win_w) && (win_h == ctx->buf.win_h))
+		return -1;
+
+	EnterCriticalSection(&(ctx->csec));
+
+	/* reinitialize buffer size */
+	status = specview_buf_init(&(ctx->buf), hdc, win_w, win_h);
+
+	if(status <= 0)
+	{
+		LeaveCriticalSection(&(ctx->csec));
+		return status;
+	}
+
+	/* invalidate data dependent of window size */
+	ctx->mag.is_inited = 0;
+	ctx->freq.is_inited = 0;
+	ctx->sql.is_inited = 0;
+
+	/* invalidate text buffer */
+	ctx->text.is_enabled = 0;
+	ctx->text.is_drawn = 0;
+	ctx->sql.is_copied = 0;
+
+	/* update data dependent of window size */
+	specview_set_mag_range(ctx);
+	specview_set_freq_range(ctx);
+	specview_set_chmap(ctx);
+	specview_set_sql(ctx, 1, 0);
+
+	LeaveCriticalSection(&(ctx->csec));
+
+	return 1;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* set default spectrum viewer configuration */
+void specview_cfg_reset(specview_cfg_t *cfg)
+{
+	cfg->m_0 = -20.0;
+	cfg->m_1 = 40.0;
+
+	cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]				= RGB(48, 48, 48);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]			= RGB(0, 0, 128);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]			= RGB(128, 0, 0);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]			= RGB(192, 192, 192);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]			= RGB(192, 192, 192);
+
+	cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]			= RGB(0, 0, 0);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]		= RGB(0, 0, 128);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]		= RGB(128, 0, 0);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]		= RGB(128, 128, 128);
+	cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]	= RGB(128, 128, 128);
+
+	cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]				= RGB(192, 192, 192);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]			= RGB(0, 0, 255);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]				= RGB(255, 0, 0);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]				= RGB(255, 255, 255);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]			= RGB(255, 255, 255);
+
+	cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]			= RGB(128, 128, 128);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]		= RGB(0, 0, 255);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]		= RGB(255, 0, 0);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]		= RGB(192, 192, 192);
+	cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]		= RGB(192, 192, 192);
+
+	cfg->cr_ticks = RGB(0, 0, 0);
+	cfg->cr_label = RGB(0, 0, 0);
+	cfg->cr_text = RGB(255, 255, 0);
+	cfg->cr_textbg = RGB(0, 0, 128);
+	
+	cfg->cr_sq_sense_op = RGB(255, 255, 255);
+	cfg->cr_sq_sense_cl = RGB(64, 64, 64);
+	cfg->cr_sq_thres_op = RGB(0, 255, 0);
+	cfg->cr_sq_thres_cl = RGB(255, 0, 0);
+
+	cfg->scale_mode = SPECSCALE_MAP_PEAK;
+
+	cfg->show_ups_counter = 0;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* load spectrum viewer configuration */
+void specview_cfg_load(specview_cfg_t *cfg, ini_sect_t *sect)
+{
+	double m_0, m_1;
+
+	if(sect != NULL)
+	{
+		m_0 = cfg->m_0;
+		m_1 = cfg->m_1;
+
+		if( ini_getfr(sect, _T("m_0"), &m_0, SPECVIEW_MAGN_MINABS, SPECVIEW_MAGN_MAXABS) &&
+			ini_getfr(sect, _T("m_1"), &m_1, SPECVIEW_MAGN_MINABS, SPECVIEW_MAGN_MAXABS) &&
+			(m_1 > m_0) )
+		{
+			cfg->m_0 = m_0;
+			cfg->m_1 = m_1;
+		}
+
+		ini_getcr(sect, _T("cr_bkgnd_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]));
+		ini_getcr(sect, _T("cr_input_fc_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]));
+		ini_getcr(sect, _T("cr_chan_fc_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]));
+		ini_getcr(sect, _T("cr_chan_bw_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]));
+		ini_getcr(sect, _T("cr_chan_bwovl_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]));
+
+		ini_getcr(sect, _T("cr_bkgnd_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]));
+		ini_getcr(sect, _T("cr_input_fc_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]));
+		ini_getcr(sect, _T("cr_chan_fc_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]));
+		ini_getcr(sect, _T("cr_chan_bw_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]));
+		ini_getcr(sect, _T("cr_chan_bwovl_grid_0"), &(cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]));
+
+		ini_getcr(sect, _T("cr_bkgnd_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]));
+		ini_getcr(sect, _T("cr_input_fc_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]));
+		ini_getcr(sect, _T("cr_chan_fc_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]));
+		ini_getcr(sect, _T("cr_chan_bw_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]));
+		ini_getcr(sect, _T("cr_chan_bwovl_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]));
+
+		ini_getcr(sect, _T("cr_bkgnd_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]));
+		ini_getcr(sect, _T("cr_input_fc_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]));
+		ini_getcr(sect, _T("cr_chan_fc_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]));
+		ini_getcr(sect, _T("cr_chan_bw_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]));
+		ini_getcr(sect, _T("cr_chan_bwovl_grid_1"), &(cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]));
+
+		ini_getcr(sect, _T("cr_ticks"), &(cfg->cr_ticks));
+		ini_getcr(sect, _T("cr_label"), &(cfg->cr_label));
+		ini_getcr(sect, _T("cr_text"), &(cfg->cr_text));
+		ini_getcr(sect, _T("cr_textbg"), &(cfg->cr_textbg));
+
+		ini_getcr(sect, _T("cr_sq_sense_op"), &(cfg->cr_sq_sense_op));
+		ini_getcr(sect, _T("cr_sq_sense_cl"), &(cfg->cr_sq_sense_cl));
+		ini_getcr(sect, _T("cr_sq_thres_op"), &(cfg->cr_sq_thres_op));
+		ini_getcr(sect, _T("cr_sq_thres_cl"), &(cfg->cr_sq_thres_cl));
+
+		/*cfg->fontsize = ini_geti(sect, _T("fontsize"), cfg->fontsize, &usedef);
+		ini_copys(sect, _T("fontname"), cfg->fontname, LF_FACESIZE, cfg->fontname, &usedef);*/
+
+		ini_gete(sect, _T("scale_mode"), &(cfg->scale_mode), SPECSCAL_MAP_MODE_COUNT);
+
+		ini_getb(sect, _T("ups_display"), &(cfg->show_ups_counter));
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* save specturm viewer configuration */
+void specview_cfg_save(ini_sect_t *sect, const specview_cfg_t *cfg)
+{
+	if(sect != NULL)
+	{
+		ini_setf(sect, _T("m_0"), 6, cfg->m_0);
+		ini_setf(sect, _T("m_1"), 6, cfg->m_1);
+
+		ini_setcr(sect, _T("cr_bkgnd_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND]);
+		ini_setcr(sect, _T("cr_input_fc_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC]);
+		ini_setcr(sect, _T("cr_chan_fc_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC]);
+		ini_setcr(sect, _T("cr_chan_bw_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW]);
+		ini_setcr(sect, _T("cr_chan_bwovl_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL]);
+
+		ini_setcr(sect, _T("cr_bkgnd_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_BKGND_GRID]);
+		ini_setcr(sect, _T("cr_input_fc_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_INPUT_FC_GRID]);
+		ini_setcr(sect, _T("cr_chan_fc_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_FC_GRID]);
+		ini_setcr(sect, _T("cr_chan_bw_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BW_GRID]);
+		ini_setcr(sect, _T("cr_chan_bwovl_grid_0"), cfg->cr_shm_cold[SPECVIEW_COLOR_CHAN_BWOVL_GRID]);
+
+		ini_setcr(sect, _T("cr_bkgnd_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND]);
+		ini_setcr(sect, _T("cr_input_fc_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC]);
+		ini_setcr(sect, _T("cr_chan_fc_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC]);
+		ini_setcr(sect, _T("cr_chan_bw_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW]);
+		ini_setcr(sect, _T("cr_chan_bwovl_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL]);
+
+		ini_setcr(sect, _T("cr_bkgnd_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_BKGND_GRID]);
+		ini_setcr(sect, _T("cr_input_fc_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_INPUT_FC_GRID]);
+		ini_setcr(sect, _T("cr_chan_fc_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_FC_GRID]);
+		ini_setcr(sect, _T("cr_chan_bw_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BW_GRID]);
+		ini_setcr(sect, _T("cr_chan_bwovl_grid_1"), cfg->cr_shm_hot[SPECVIEW_COLOR_CHAN_BWOVL_GRID]);
+
+		ini_setcr(sect, _T("cr_ticks"), cfg->cr_ticks);
+		ini_setcr(sect, _T("cr_label"), cfg->cr_label);
+		ini_setcr(sect, _T("cr_text"), cfg->cr_text);
+		ini_setcr(sect, _T("cr_textbg"), cfg->cr_textbg);
+
+		ini_setcr(sect, _T("cr_sq_sense_op"), cfg->cr_sq_sense_op);
+		ini_setcr(sect, _T("cr_sq_sense_cl"), cfg->cr_sq_sense_cl);
+		ini_setcr(sect, _T("cr_sq_thres_op"), cfg->cr_sq_thres_op);
+		ini_setcr(sect, _T("cr_sq_thres_cl"), cfg->cr_sq_thres_cl);
+
+		/*ini_seti(sect, _T("fontsize"), cfg->fontsize);
+		ini_set(sect, _T("fontname"), cfg->fontname);*/
+
+		ini_seti(sect, _T("scale_mode"), cfg->scale_mode);
+
+		ini_setb(sect, _T("ups_display"), cfg->show_ups_counter);
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
+/* set viewer configuration */
+int specview_cfg_set(specview_ctx_t *ctx, const specview_cfg_t *cfg_new, int *p_updated)
+{
+	int status = 1, need_update = 0;
+
+	/* check for magnitude range change */
+	if( (fabs(cfg_new->m_0 - ctx->cfg.m_0) >= 1e-6) ||
+		(fabs(cfg_new->m_1 - ctx->cfg.m_1) >= 1e-6) )
+	{
+		ctx->cfg.m_0 = cfg_new->m_0;
+		ctx->cfg.m_1 = cfg_new->m_1;
+
+		/* update magnitude map */
+		if(!specview_set_mag_range(ctx))
+			status = 0;
+		
+		need_update = 1;
+	}
+
+	/* check for color configuration changes */
+	if( (cfg_new->cr_label != ctx->cfg.cr_label) ||
+		(cfg_new->cr_ticks != ctx->cfg.cr_ticks) ||
+		(cfg_new->cr_text != ctx->cfg.cr_text) ||
+		(cfg_new->cr_textbg != ctx->cfg.cr_textbg) ||
+		(cfg_new->cr_sq_sense_op != ctx->cfg.cr_sq_sense_op) ||
+		(cfg_new->cr_sq_sense_cl != ctx->cfg.cr_sq_sense_cl) ||
+		(cfg_new->cr_sq_thres_op != ctx->cfg.cr_sq_thres_op) ||
+		(cfg_new->cr_sq_thres_cl != ctx->cfg.cr_sq_thres_cl) ||
+		(memcmp(cfg_new->cr_shm_hot, ctx->cfg.cr_shm_hot, sizeof(ctx->cfg.cr_shm_hot)) != 0) ||
+		(memcmp(cfg_new->cr_shm_cold, ctx->cfg.cr_shm_cold, sizeof(ctx->cfg.cr_shm_cold)) != 0) )
+	{
+		/* copy new color settings */
+		ctx->cfg.cr_label = cfg_new->cr_label;
+		ctx->cfg.cr_ticks = cfg_new->cr_ticks;
+		ctx->cfg.cr_text = cfg_new->cr_text;
+		ctx->cfg.cr_textbg = cfg_new->cr_textbg;
+		ctx->cfg.cr_sq_sense_op = cfg_new->cr_sq_sense_op;
+		ctx->cfg.cr_sq_sense_cl = cfg_new->cr_sq_sense_cl;
+		ctx->cfg.cr_sq_thres_op = cfg_new->cr_sq_thres_op;
+		ctx->cfg.cr_sq_thres_cl = cfg_new->cr_sq_thres_cl;
+		memcpy(ctx->cfg.cr_shm_hot, cfg_new->cr_shm_hot, sizeof(ctx->cfg.cr_shm_hot));
+		memcpy(ctx->cfg.cr_shm_cold, cfg_new->cr_shm_cold, sizeof(ctx->cfg.cr_shm_cold));
+
+		/* reinit gdi resource of spectrum viewer */
+		if(!specview_res_reinit(ctx))
+			status = 0;
+		
+		need_update = 1;
+	}
+
+	/* Check for other parameters change (update required) */
+	if(cfg_new->show_ups_counter != ctx->cfg.show_ups_counter)
+	{
+		ctx->cfg.show_ups_counter = cfg_new->show_ups_counter;
+		need_update = 1;
+	}
+
+	/* Check for other parameters change (no update needed) */
+	ctx->cfg.scale_mode = cfg_new->scale_mode;
+
+	if(p_updated)
+		*p_updated = need_update;
+
+	return status;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+
 /* initialize spectrum viewer */
 specview_ctx_t *specview_init(HDC hdc, HFONT hfont,
 							  rxstate_t *rx, double f_0, double f_1,
-							  int win_w, int win_h, ini_sect_t *sect)
+							  int win_w, int win_h,
+							  const specview_cfg_t *cfg_init)
 {
 	specview_ctx_t *ctx;
 
@@ -2351,8 +2420,7 @@ specview_ctx_t *specview_init(HDC hdc, HFONT hfont,
 			ctx->hfont = hfont;
 
 			/* initialize configuration */
-			specview_cfg_reset(&(ctx->cfg));
-			specview_cfg_load(&(ctx->cfg), sect);
+			memcpy(&(ctx->cfg), cfg_init, sizeof(specview_cfg_t));
 
 			/* allocate gdi resources */
 			if(specview_res_init(&(ctx->res), &(ctx->cfg)))
@@ -2386,12 +2454,10 @@ specview_ctx_t *specview_init(HDC hdc, HFONT hfont,
 /* ---------------------------------------------------------------------------------------------- */
 
 /* clean up spectrum viewer */
-void specview_cleanup(specview_ctx_t *ctx, ini_sect_t *sect)
+void specview_cleanup(specview_ctx_t *ctx)
 {
 	if(ctx != NULL)
 	{
-		specview_cfg_save(&(ctx->cfg), sect);
-
 		if(ctx->buf.is_inited) {
 			specview_buf_free(&(ctx->buf));
 		}
