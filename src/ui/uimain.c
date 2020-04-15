@@ -46,7 +46,6 @@ static void unregisterclasses(HINSTANCE h_inst)
 int uimain(HINSTANCE h_inst, int n_show, ini_data_t *ini, ini_data_t *inich)
 {
 	uicommon_t uidata;
-	callback_list_t cb_list;
 	HWND hwnd;
 	MSG msg;
 
@@ -61,31 +60,26 @@ int uimain(HINSTANCE h_inst, int n_show, ini_data_t *ini, ini_data_t *inich)
 		}
 		else
 		{
-			/* allocate window notification list */
-			if(callback_list_init(&cb_list, 16))
+			hwnd = rxwnd_create(&uidata, ini, inich, n_show);
+
+			if(hwnd != NULL)
 			{
-				hwnd = rxwnd_create(&uidata, ini, inich, &cb_list, n_show);
-
-				if(hwnd != NULL)
+				while(GetMessage(&msg, NULL, 0, 0))
 				{
-					while(GetMessage(&msg, NULL, 0, 0))
+					if( (uidata.accel.hwnd != NULL) && (uidata.accel.haccel != NULL) &&
+						TranslateAccelerator(uidata.accel.hwnd, uidata.accel.haccel, &msg) )
 					{
-						if( (uidata.accel.hwnd != NULL) && (uidata.accel.haccel != NULL) &&
-							TranslateAccelerator(uidata.accel.hwnd, uidata.accel.haccel, &msg) )
-						{
-							continue;
-						}
-
-						if(keynav_msghandle(&(uidata.keynav), &msg))
-							continue;
-
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
+						continue;
 					}
-				}
 
-				callback_list_cleanup(&cb_list);
+					if(keynav_msghandle(&(uidata.keynav), &msg))
+						continue;
+
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
 			}
+
 		}
 
 		/* unregister all registered classes */
